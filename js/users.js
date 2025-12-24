@@ -182,11 +182,15 @@
     }
 
     if (error) {
-      const detail =
-        error.context?.data?.error ||
-        error.context?.data?.message ||
-        error.message ||
-        "Error desconocido.";
+      let detail = error.message || "Error desconocido.";
+      if (error.context && typeof error.context.json === "function") {
+        try {
+          const body = await error.context.json();
+          detail = body?.error || body?.message || detail;
+        } catch (_err) {
+          detail = error.message || detail;
+        }
+      }
       setInviteStatus(`No se pudo enviar la invitacion: ${detail}`, "error");
       return;
     }
