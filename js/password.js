@@ -231,7 +231,14 @@
     setBusy(false);
 
     if (error) {
-      setError("No se pudo actualizar la contrasena. Intenta de nuevo.");
+      const detail = error.message || "Error desconocido.";
+      if (detail.toLowerCase().includes("session")) {
+        setError(
+          "Enlace vencido o no valido. Abre el correo de invitacion y usa el link nuevamente."
+        );
+      } else {
+        setError(`No se pudo actualizar la contrasena: ${detail}`);
+      }
       return;
     }
 
