@@ -137,6 +137,12 @@
       return;
     }
 
+    const sessionCheck = await supabaseClient.auth.getSession();
+    if (sessionCheck.error || !sessionCheck.data?.session) {
+      setInviteStatus("Sesion expirada. Inicia sesion nuevamente.", "error");
+      return;
+    }
+
     const email = (userEmailInput?.value || "").trim();
     if (!email) {
       setInviteStatus("Ingresa un email valido.", "error");
@@ -176,12 +182,17 @@
     }
 
     if (error) {
-      setInviteStatus("No se pudo enviar la invitacion.", "error");
+      const detail =
+        error.context?.data?.error ||
+        error.context?.data?.message ||
+        error.message ||
+        "Error desconocido.";
+      setInviteStatus(`No se pudo enviar la invitacion: ${detail}`, "error");
       return;
     }
 
     if (response?.error) {
-      setInviteStatus(response.error, "error");
+      setInviteStatus(`No se pudo enviar la invitacion: ${response.error}`, "error");
       return;
     }
 
