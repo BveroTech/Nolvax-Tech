@@ -1,0 +1,172 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Empresas</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+            <p class="login-note">Acceso superusuario</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          Este acceso controla empresas, usuarios y modulos en la nube.
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="brand-title">Nolvax Admin</p>
+            <p class="brand-sub">Control SaaS</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link" href="panel.html">Panel</a>
+          <a class="nav-link active" href="empresas.html">Empresas</a>
+          <a class="nav-link" href="usuarios.html">Usuarios</a>
+          <a class="nav-link" href="suscripcion.html">Suscripcion</a>
+          <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="auditoria.html">Auditoria</a>
+          <a class="nav-link" href="soporte.html">Soporte</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">2 alertas</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 4 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="panel.html">Abrir centro de control</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <div class="content-grid">
+            <div class="column">
+              <article class="panel" style="--i: 1">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Empresas</p>
+                    <h2>Crear empresa</h2>
+                  </div>
+                  <span class="chip chip-soft">store_id obligatorio</span>
+                </div>
+                <form class="form-grid" id="company-form">
+                  <div class="field">
+                    <label for="company-name">Nombre empresa</label>
+                    <input id="company-name" name="company_name" required />
+                  </div>
+                  <div class="field">
+                    <label for="company-legal">Razon social</label>
+                    <input id="company-legal" name="legal_name" />
+                  </div>
+                  <div class="field">
+                    <label for="company-tax">RUT / NIT</label>
+                    <input id="company-tax" name="tax_id" />
+                  </div>
+                  <div class="field">
+                    <label for="company-country">Pais</label>
+                    <select id="company-country" name="country">
+                      <option value="CL">Chile</option>
+                      <option value="PE">Peru</option>
+                      <option value="CO">Colombia</option>
+                      <option value="MX">Mexico</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="company-plan">Plan</label>
+                    <select id="company-plan" name="plan">
+                      <option value="Base">Base</option>
+                      <option value="Pro">Pro</option>
+                      <option value="Plus">Plus</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="company-billing">Email facturacion</label>
+                    <input id="company-billing" name="billing_email" type="email" />
+                  </div>
+                  <div class="field">
+                    <label for="company-status">Estado</label>
+                    <select id="company-status" name="status">
+                      <option value="active">Activo</option>
+                      <option value="past_due">Pendiente</option>
+                      <option value="blocked">Bloqueado</option>
+                    </select>
+                  </div>
+                  <div class="field span-2">
+                    <label for="company-notes">Notas internas</label>
+                    <textarea id="company-notes" name="notes" rows="3"></textarea>
+                  </div>
+                  <div class="form-actions span-2">
+                    <button class="btn btn-primary" type="submit">Crear empresa</button>
+                    <button class="btn btn-ghost" type="reset">Limpiar</button>
+                  </div>
+                </form>
+              </article>
+            </div>
+
+            <div class="column">
+              <article class="panel" style="--i: 2">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Empresas registradas</p>
+                    <h2>Listado general</h2>
+                  </div>
+                  <span class="chip chip-live">RLS activo</span>
+                </div>
+                <ul class="list" id="company-list-full"></ul>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/companies.js"></script>
+    <script src="../js/users.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,239 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Usuarios</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+            <p class="login-note">Acceso superusuario</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          Este acceso controla empresas, usuarios y modulos en la nube.
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="brand-title">Nolvax Admin</p>
+            <p class="brand-sub">Control SaaS</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link" href="panel.html">Panel</a>
+          <a class="nav-link" href="empresas.html">Empresas</a>
+          <a class="nav-link active" href="usuarios.html">Usuarios</a>
+          <a class="nav-link" href="suscripcion.html">Suscripcion</a>
+          <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="auditoria.html">Auditoria</a>
+          <a class="nav-link" href="soporte.html">Soporte</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">2 alertas</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 4 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="panel.html">Abrir centro de control</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <div class="stack">
+            <article class="panel" style="--i: 1">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Usuarios</p>
+                  <h2>Crear usuario y asociar empresa</h2>
+                </div>
+                <span class="chip chip-soft">Invitacion segura</span>
+              </div>
+              <form class="form-grid" id="user-form">
+                <div class="field">
+                  <label for="user-first-name">Primer nombre</label>
+                  <input id="user-first-name" name="first_name" required />
+                </div>
+                <div class="field">
+                  <label for="user-second-name">Segundo nombre</label>
+                  <input
+                    id="user-second-name"
+                    name="second_name"
+                    placeholder="Gabriel A."
+                  />
+                </div>
+                <div class="field">
+                  <label for="user-last-name">Primer apellido</label>
+                  <input id="user-last-name" name="last_name" required />
+                </div>
+                <div class="field">
+                  <label for="user-last-name-2">Segundo apellido</label>
+                  <input id="user-last-name-2" name="last_name2" required />
+                </div>
+                <div class="field">
+                  <label for="user-email">Email</label>
+                  <input id="user-email" name="email" type="email" required />
+                </div>
+                <div class="field">
+                  <label for="user-type">Tipo de usuario</label>
+                  <select id="user-type" name="user_type">
+                    <option value="admin">Admin Nolvax</option>
+                    <option value="cliente">Cliente</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="user-role">Rol</label>
+                  <select id="user-role" name="role">
+                    <option value="admin">Admin</option>
+                    <option value="manager">Manager</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="support">Soporte</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="user-company">Empresa</label>
+                  <select id="user-company" name="company_id"></select>
+                </div>
+                <div class="field span-2">
+                  <label for="user-phone">Telefono</label>
+                  <div class="phone-group">
+                    <span class="phone-prefix" aria-hidden="true">+56</span>
+                    <input
+                      id="user-phone"
+                      name="phone"
+                      class="phone-input"
+                      inputmode="numeric"
+                      autocomplete="tel-national"
+                      placeholder="9 1234 5678"
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="user-access">Metodo alta</label>
+                  <div class="locked-field" id="user-access">Invitacion</div>
+                  <input type="hidden" name="access" value="invite" />
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="submit">Crear usuario</button>
+                  <button class="btn btn-ghost" type="button">Enviar invitacion</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="panel" style="--i: 2">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Gestion</p>
+                  <h2>Filtros y acciones</h2>
+                </div>
+                <span class="chip chip-soft" id="user-status-summary">Activos: 0</span>
+              </div>
+              <div class="filter-grid">
+                <label class="search">
+                  <span>Buscar</span>
+                  <input
+                    id="user-filter-search"
+                    type="search"
+                    placeholder="Nombre, email o empresa"
+                  />
+                </label>
+                <div class="field">
+                  <label for="user-filter-type">Tipo</label>
+                  <select id="user-filter-type">
+                    <option value="all">Todos</option>
+                    <option value="admin">Admin Nolvax</option>
+                    <option value="cliente">Clientes</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="user-filter-status">Estado</label>
+                  <select id="user-filter-status">
+                    <option value="all">Todos</option>
+                    <option value="active">Activos</option>
+                    <option value="disabled">Inhabilitados</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost" type="button" id="user-filter-clear">
+                    Limpiar filtros
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel" style="--i: 3" id="user-admin-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Admins Nolvax</p>
+                  <h2>Equipo interno</h2>
+                </div>
+                <span class="chip chip-live">Staff</span>
+              </div>
+              <ul class="list" id="user-list-admin"></ul>
+            </article>
+
+            <article class="panel" style="--i: 4" id="user-client-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Clientes</p>
+                  <h2>Dueno de empresas</h2>
+                </div>
+                <span class="chip chip-soft">Clientes</span>
+              </div>
+              <ul class="list" id="user-list-client"></ul>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/companies.js"></script>
+    <script src="../js/users.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
+

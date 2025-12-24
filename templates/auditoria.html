@@ -1,0 +1,129 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Auditoria</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+            <p class="login-note">Acceso superusuario</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          Este acceso controla empresas, usuarios y modulos en la nube.
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="brand-title">Nolvax Admin</p>
+            <p class="brand-sub">Control SaaS</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link" href="panel.html">Panel</a>
+          <a class="nav-link" href="empresas.html">Empresas</a>
+          <a class="nav-link" href="usuarios.html">Usuarios</a>
+          <a class="nav-link" href="suscripcion.html">Suscripcion</a>
+          <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link active" href="auditoria.html">Auditoria</a>
+          <a class="nav-link" href="soporte.html">Soporte</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">2 alertas</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 4 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="panel.html">Abrir centro de control</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <div class="stack">
+            <article class="panel" style="--i: 1">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Auditoria</p>
+                  <h2>Movimientos criticos</h2>
+                </div>
+                <span class="chip chip-soft">RLS activo</span>
+              </div>
+              <ul class="timeline">
+                <li>
+                  <span class="time">09:14</span>
+                  <div>
+                    <p class="event-title">Cambio de plan</p>
+                    <p class="event-note">Tienda Norte Market paso a Pro</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="time">08:47</span>
+                  <div>
+                    <p class="event-title">Bloqueo remoto</p>
+                    <p class="event-note">POS inhabilitado por pago pendiente</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="time">08:12</span>
+                  <div>
+                    <p class="event-title">Alta de usuario</p>
+                    <p class="event-note">Admin creado para La Esquina</p>
+                  </div>
+                </li>
+              </ul>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/companies.js"></script>
+    <script src="../js/users.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
+
