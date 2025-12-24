@@ -18,6 +18,7 @@
   const userTypeSelect = document.getElementById("user-type");
   const userRoleSelect = document.getElementById("user-role");
   const userEmailInput = document.getElementById("user-email");
+  const userRutInput = document.getElementById("user-rut");
   const firstNameInput = document.getElementById("user-first-name");
   const secondNameInput = document.getElementById("user-second-name");
   const lastNameInput = document.getElementById("user-last-name");
@@ -53,6 +54,15 @@
     }
     const formatted = N.utils.formatChilePhoneInput(phoneInput.value);
     phoneInput.value = formatted;
+    return formatted;
+  }
+
+  function applyRutFormat() {
+    if (!userRutInput) {
+      return "";
+    }
+    const formatted = N.utils.formatRutInput(userRutInput.value);
+    userRutInput.value = formatted;
     return formatted;
   }
 
@@ -126,20 +136,155 @@
     }
   }
 
-  async function handleInvite() {
-    setInviteStatus("", "");
-    if (!supabaseClient) {
-      setInviteStatus("No se encontro la conexion a Supabase.", "error");
-      return;
+  function buildUserData(formData) {
+    const userType = N.utils.normalizeUserType(formData.get("user_type"));
+    const role = userType === "cliente" ? N.config.OWNER_ROLE_VALUE : formData.get("role");
+    const firstName = N.utils.formatCompactInput(formData.get("first_name"));
+    const secondName = N.utils.formatSecondNameInput(formData.get("second_name"));
+    const lastName1 = N.utils.formatCompactInput(formData.get("last_name"));
+    const lastName2 = N.utils.formatCompactInput(formData.get("last_name2"));
+    const names = [firstName, secondName].filter(Boolean).join(" ").trim();
+    const lastNames = [lastName1, lastName2].filter(Boolean).join(" ").trim();
+    const phoneLocal = N.utils.formatChilePhoneInput(formData.get("phone"));
+    const phone = phoneLocal ? `+56 ${phoneLocal}` : "";
+    const companyId = formData.get("company_id");
+    const company = N.state.companies.find((item) => item.id === companyId);
+    const companyName = userType === "admin" ? "Nolvax" : company ? company.name : "Sin empresa";
+    const email = String(formData.get("email") || "").trim();
+    const rut = N.utils.formatRutInput(formData.get("rut"));
+
+    return {
+      name: names || "Usuario",
+      firstName,
+      secondName,
+      lastName1,
+      lastName2,
+      lastName: lastNames,
+      email,
+      role,
+      companyId: companyId || "",
+      company: companyName,
+      userType,
+      phone,
+      rut,
+    };
+  }
+
+  function upsertUserFromForm(formData, inviteStatus) {
+    const data = buildUserData(formData);
+    const targetEmail = N.utils.normalizeEmail(data.email);
+    if (!targetEmail) {
+      return null;
     }
-    if (!userForm) {
-      setInviteStatus("Formulario no disponible.", "error");
-      return;
+    let user = N.state.users.find(
+      (item) => N.utils.normalizeEmail(item.email) === targetEmail
+    );
+    if (user) {
+      Object.assign(user, data);
+    } else {
+      user = {
+        id: `usr_${Date.now()}`,
+        status: "active",
+        ...data,
+      };
+      N.state.users.unshift(user);
     }
 
+    if (inviteStatus) {
+      user.inviteStatus = inviteStatus;
+      user.inviteUpdatedAt = new Date().toISOString();
+    }
+
+    return user;
+  }
+
+  function getInviteActionLabel(user) {
+    const status = user?.inviteStatus || "";
+    if (status === "sent") {
+      return "Reenviar";
+    }
+    if (status === "failed") {
+      return "Reintentar";
+    }
+    if (status === "pending") {
+      return "Enviando";
+    }
+    return "Invitar";
+  }
+
+  async function sendInvite(user) {
+    if (!supabaseClient) {
+      return { ok: false, error: "No se encontro la conexion a Supabase." };
+    }
     const sessionCheck = await supabaseClient.auth.getSession();
     if (sessionCheck.error || !sessionCheck.data?.session) {
-      setInviteStatus("Sesion expirada. Inicia sesion nuevamente.", "error");
+      return { ok: false, error: "Sesion expirada. Inicia sesion nuevamente." };
+    }
+
+    const payload = {
+      email: user.email,
+      redirectTo: getInviteRedirectUrl(),
+      data: {
+        first_name: user.firstName,
+        second_name: user.secondName,
+        last_name: user.lastName1,
+        last_name2: user.lastName2,
+        user_type: user.userType,
+        role: user.role,
+        company_id: user.companyId || "",
+        rut: user.rut || "",
+      },
+    };
+
+    const { data: response, error } = await supabaseClient.functions.invoke("invite-user", {
+      body: payload,
+    });
+
+    if (error) {
+      let detail = error.message || "Error desconocido.";
+      if (error.context && typeof error.context.json === "function") {
+        try {
+          const body = await error.context.json();
+          detail = body?.error || body?.message || detail;
+        } catch (_err) {
+          detail = error.message || detail;
+        }
+      }
+      if (detail.toLowerCase().includes("already been registered")) {
+        const { error: recoveryError } = await supabaseClient.auth.resetPasswordForEmail(
+          user.email,
+          { redirectTo: getInviteRedirectUrl() }
+        );
+        if (recoveryError) {
+          return { ok: false, error: recoveryError.message || detail };
+        }
+        return { ok: true, mode: "recovery" };
+      }
+      return { ok: false, error: detail };
+    }
+
+    if (response?.error) {
+      const detail = String(response.error || "").trim();
+      if (detail.toLowerCase().includes("already been registered")) {
+        const { error: recoveryError } = await supabaseClient.auth.resetPasswordForEmail(
+          user.email,
+          { redirectTo: getInviteRedirectUrl() }
+        );
+        if (recoveryError) {
+          return { ok: false, error: recoveryError.message || detail };
+        }
+        return { ok: true, mode: "recovery" };
+      }
+      return { ok: false, error: response.error };
+    }
+
+    return { ok: true, mode: "invite" };
+  }
+
+  async function handleInvite() {
+    setInviteStatus("", "");
+    if (!userForm) {
+      setInviteStatus("Formulario no disponible.", "error");
       return;
     }
 
@@ -154,53 +299,41 @@
       inviteButton.textContent = "Enviando...";
     }
 
-    const data = new FormData(userForm);
-    const userType = N.utils.normalizeUserType(data.get("user_type"));
-    const role = userType === "cliente" ? N.config.OWNER_ROLE_VALUE : data.get("role");
+    const formData = new FormData(userForm);
+    const user = upsertUserFromForm(formData, "pending");
+    if (!user) {
+      setInviteStatus("Ingresa un email valido.", "error");
+      if (inviteButton) {
+        inviteButton.disabled = false;
+        inviteButton.textContent = "Enviar invitacion";
+      }
+      return;
+    }
 
-    const payload = {
-      email,
-      redirectTo: getInviteRedirectUrl(),
-      data: {
-        first_name: N.utils.formatCompactInput(data.get("first_name")),
-        second_name: N.utils.formatSecondNameInput(data.get("second_name")),
-        last_name: N.utils.formatCompactInput(data.get("last_name")),
-        last_name2: N.utils.formatCompactInput(data.get("last_name2")),
-        user_type: userType,
-        role,
-        company_id: data.get("company_id") || "",
-      },
-    };
-
-    const { data: response, error } = await supabaseClient.functions.invoke("invite-user", {
-      body: payload,
-    });
-
+    const result = await sendInvite(user);
     if (inviteButton) {
       inviteButton.disabled = false;
       inviteButton.textContent = "Enviar invitacion";
     }
 
-    if (error) {
-      let detail = error.message || "Error desconocido.";
-      if (error.context && typeof error.context.json === "function") {
-        try {
-          const body = await error.context.json();
-          detail = body?.error || body?.message || detail;
-        } catch (_err) {
-          detail = error.message || detail;
-        }
-      }
-      setInviteStatus(`No se pudo enviar la invitacion: ${detail}`, "error");
+    user.inviteStatus = result.ok ? "sent" : "failed";
+    user.inviteUpdatedAt = new Date().toISOString();
+    if (N.data?.saveState) {
+      await N.data.saveState();
+    }
+    renderLists();
+
+    if (!result.ok) {
+      setInviteStatus(`No se pudo enviar la invitacion: ${result.error}`, "error");
       return;
     }
 
-    if (response?.error) {
-      setInviteStatus(`No se pudo enviar la invitacion: ${response.error}`, "error");
+    if (result.mode === "recovery") {
+      setInviteStatus(`Usuario ya existe. Se envio correo de recuperacion a ${user.email}.`, "success");
       return;
     }
 
-    setInviteStatus(`Invitacion enviada a ${email}.`, "success");
+    setInviteStatus(`Invitacion enviada a ${user.email}.`, "success");
   }
 
   function getUserFilters() {
@@ -224,6 +357,7 @@
       N.utils.buildUserDisplayName(user),
       user.email || "",
       user.company || "",
+      user.rut || "",
     ]
       .join(" ")
       .toLowerCase();
@@ -262,12 +396,13 @@
     }
   }
 
-  function createActionButton(action, label) {
+  function createActionButton(action, label, disabled = false) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "btn btn-ghost btn-xs";
     button.dataset.action = action;
     button.textContent = label;
+    button.disabled = disabled;
     return button;
   }
 
@@ -333,15 +468,23 @@
         const metaEmail = document.createElement("p");
         metaEmail.className = "list-meta-line";
         metaEmail.textContent = `Email: ${user.email || "-"}`;
+        const metaRut = document.createElement("p");
+        metaRut.className = "list-meta-line";
+        metaRut.textContent = `RUT: ${user.rut || "-"}`;
         const metaPhone = document.createElement("p");
         metaPhone.className = "list-meta-line";
         metaPhone.textContent = `Telefono: ${user.phone || "-"}`;
         const metaStatus = document.createElement("p");
         metaStatus.className = "list-meta-line";
         metaStatus.textContent = `Estado: ${N.utils.getStatusLabel(user.status)}`;
+        const metaInvite = document.createElement("p");
+        metaInvite.className = "list-meta-line";
+        metaInvite.textContent = `Invitacion: ${user.inviteStatus || "no enviada"}`;
         meta.appendChild(metaEmail);
+        meta.appendChild(metaRut);
         meta.appendChild(metaPhone);
         meta.appendChild(metaStatus);
+        meta.appendChild(metaInvite);
         if (user.disabledUntil) {
           const metaUntil = document.createElement("p");
           metaUntil.className = "list-meta-line";
@@ -357,6 +500,9 @@
         const actionsWrap = document.createElement("div");
         actionsWrap.className = "list-actions";
         actionsWrap.appendChild(chip);
+        const inviteLabel = getInviteActionLabel(user);
+        const inviteDisabled = inviteLabel === "Enviando";
+        actionsWrap.appendChild(createActionButton("invite", inviteLabel, inviteDisabled));
         actionsWrap.appendChild(createActionButton("info", "Info"));
         const isDisabled = N.utils.normalizeUserStatus(user.status) === "disabled";
         actionsWrap.appendChild(
@@ -393,39 +539,10 @@
       return;
     }
     const data = new FormData(userForm);
-    const userType = N.utils.normalizeUserType(data.get("user_type"));
-
-    const role = userType === "cliente" ? N.config.OWNER_ROLE_VALUE : data.get("role");
-    const firstName = N.utils.formatCompactInput(data.get("first_name"));
-    const secondName = N.utils.formatSecondNameInput(data.get("second_name"));
-    const lastName1 = N.utils.formatCompactInput(data.get("last_name"));
-    const lastName2 = N.utils.formatCompactInput(data.get("last_name2"));
-    const names = [firstName, secondName].filter(Boolean).join(" ").trim();
-    const lastNames = [lastName1, lastName2].filter(Boolean).join(" ").trim();
-    const phoneLocal = N.utils.formatChilePhoneInput(data.get("phone"));
-    const phone = phoneLocal ? `+56 ${phoneLocal}` : "";
-    const companyId = data.get("company_id");
-    const company = N.state.companies.find((item) => item.id === companyId);
-    const companyName = userType === "admin" ? "Nolvax" : company ? company.name : "Sin empresa";
-    const email = String(data.get("email") || "").trim();
-
-    const user = {
-      id: `usr_${Date.now()}`,
-      name: names || "Usuario",
-      firstName,
-      secondName,
-      lastName1,
-      lastName2,
-      lastName: lastNames,
-      email,
-      role,
-      company: companyName,
-      userType,
-      phone,
-      status: "active",
-    };
-
-    N.state.users.unshift(user);
+    const user = upsertUserFromForm(data);
+    if (!user) {
+      return;
+    }
     if (N.data?.saveState) {
       await N.data.saveState();
     }
@@ -455,6 +572,35 @@
     }
 
     const action = button.dataset.action;
+    if (action === "invite") {
+      user.inviteStatus = "pending";
+      user.inviteUpdatedAt = new Date().toISOString();
+      if (N.data?.saveState) {
+        await N.data.saveState();
+      }
+      renderLists();
+      const result = await sendInvite(user);
+      user.inviteStatus = result.ok ? "sent" : "failed";
+      user.inviteUpdatedAt = new Date().toISOString();
+      if (N.data?.saveState) {
+        await N.data.saveState();
+      }
+      renderLists();
+      if (!result.ok) {
+        setInviteStatus(`No se pudo enviar la invitacion: ${result.error}`, "error");
+      } else {
+        if (result.mode === "recovery") {
+          setInviteStatus(
+            `Usuario ya existe. Se envio correo de recuperacion a ${user.email}.`,
+            "success"
+          );
+        } else {
+          setInviteStatus(`Invitacion enviada a ${user.email}.`, "success");
+        }
+      }
+      return;
+    }
+
     if (action === "info") {
       listItem.classList.toggle("is-open");
       return;
@@ -499,6 +645,7 @@
     applyCompactFormat(lastNameInput);
     applyCompactFormat(lastName2Input);
     applyPhoneFormat();
+    applyRutFormat();
   }
 
   function init() {
@@ -551,6 +698,9 @@
     }
     if (phoneInput) {
       phoneInput.addEventListener("input", applyPhoneFormat);
+    }
+    if (userRutInput) {
+      userRutInput.addEventListener("input", applyRutFormat);
     }
     if (inviteButton) {
       inviteButton.addEventListener("click", handleInvite);
