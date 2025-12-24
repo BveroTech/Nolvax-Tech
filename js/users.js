@@ -17,12 +17,17 @@
   const userStatusSummary = document.getElementById("user-status-summary");
   const userTypeSelect = document.getElementById("user-type");
   const userRoleSelect = document.getElementById("user-role");
+  const userEmailInput = document.getElementById("user-email");
   const firstNameInput = document.getElementById("user-first-name");
   const secondNameInput = document.getElementById("user-second-name");
   const lastNameInput = document.getElementById("user-last-name");
   const lastName2Input = document.getElementById("user-last-name-2");
   const phoneInput = document.getElementById("user-phone");
   const companySelect = document.getElementById("user-company");
+  const inviteButton = document.getElementById("user-invite-btn");
+  const inviteStatus = document.getElementById("user-invite-status");
+
+  const supabaseClient = window.supabaseClient;
 
   function applyCompactFormat(input) {
     if (!input) {
@@ -102,6 +107,85 @@
         }
       }
     }
+  }
+
+  function setInviteStatus(message, tone) {
+    if (!inviteStatus) {
+      return;
+    }
+    inviteStatus.textContent = message || "";
+    inviteStatus.classList.toggle("is-error", tone === "error");
+    inviteStatus.classList.toggle("is-success", tone === "success");
+  }
+
+  function getInviteRedirectUrl() {
+    try {
+      return new URL("crear-contrasena.html", window.location.href).toString();
+    } catch (error) {
+      return "";
+    }
+  }
+
+  async function handleInvite() {
+    setInviteStatus("", "");
+    if (!supabaseClient) {
+      setInviteStatus("No se encontro la conexion a Supabase.", "error");
+      return;
+    }
+    if (!userForm) {
+      setInviteStatus("Formulario no disponible.", "error");
+      return;
+    }
+
+    const email = (userEmailInput?.value || "").trim();
+    if (!email) {
+      setInviteStatus("Ingresa un email valido.", "error");
+      return;
+    }
+
+    if (inviteButton) {
+      inviteButton.disabled = true;
+      inviteButton.textContent = "Enviando...";
+    }
+
+    const data = new FormData(userForm);
+    const userType = N.utils.normalizeUserType(data.get("user_type"));
+    const role = userType === "cliente" ? N.config.OWNER_ROLE_VALUE : data.get("role");
+
+    const payload = {
+      email,
+      redirectTo: getInviteRedirectUrl(),
+      data: {
+        first_name: N.utils.formatCompactInput(data.get("first_name")),
+        second_name: N.utils.formatSecondNameInput(data.get("second_name")),
+        last_name: N.utils.formatCompactInput(data.get("last_name")),
+        last_name2: N.utils.formatCompactInput(data.get("last_name2")),
+        user_type: userType,
+        role,
+        company_id: data.get("company_id") || "",
+      },
+    };
+
+    const { data: response, error } = await supabaseClient.functions.invoke("invite-user", {
+      body: payload,
+    });
+
+    if (inviteButton) {
+      inviteButton.disabled = false;
+      inviteButton.textContent = "Enviar invitacion";
+    }
+
+    if (error) {
+      setInviteStatus("No se pudo enviar la invitacion.", "error");
+      return;
+    }
+
+    if (response?.error) {
+      setInviteStatus(response.error, "error");
+      return;
+    }
+
+    setInviteStatus(`Invitacion enviada a ${email}.`, "success");
   }
 
   function getUserFilters() {
@@ -452,6 +536,9 @@
     }
     if (phoneInput) {
       phoneInput.addEventListener("input", applyPhoneFormat);
+    }
+    if (inviteButton) {
+      inviteButton.addEventListener("click", handleInvite);
     }
   }
 

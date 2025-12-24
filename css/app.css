@@ -109,6 +109,72 @@ body::before {
   color: var(--ink-soft);
 }
 
+.password-card {
+  gap: 16px;
+}
+
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.field-note {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.password-rules {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-rule::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(228, 107, 43, 0.35);
+}
+
+.password-rule.is-valid {
+  color: #0f5f54;
+}
+
+.password-rule.is-valid::before {
+  background: rgba(31, 157, 138, 0.7);
+}
+
+.password-success {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #0f5f54;
+  display: none;
+}
+
+.password-success.is-visible {
+  display: block;
+}
+
+.password-status {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
 .app-shell {
   position: relative;
   z-index: 1;
@@ -476,6 +542,20 @@ h1 {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.form-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.form-status.is-error {
+  color: #9f2b1f;
+}
+
+.form-status.is-success {
+  color: #0f5f54;
 }
 
 .filter-grid {

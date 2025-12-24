@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Crear contrasena</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen">
+      <div class="login-card password-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Crear contrasena</p>
+            <p class="login-note">Acceso seguro para Nolvax Admin</p>
+          </div>
+        </div>
+
+        <form class="login-form" id="password-form">
+          <div class="field">
+            <label for="password-input">Nueva contrasena</label>
+            <div class="password-field">
+              <input
+                id="password-input"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+              />
+              <button class="btn btn-ghost btn-xs" type="button" id="password-toggle">
+                Ver
+              </button>
+            </div>
+            <p class="field-note" id="password-strength">Completa los requisitos.</p>
+          </div>
+          <div class="field">
+            <label for="password-confirm">Repetir contrasena</label>
+            <input
+              id="password-confirm"
+              name="password_confirm"
+              type="password"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+          <ul class="password-rules" id="password-rules">
+            <li class="password-rule" data-rule="length">Minimo 8 caracteres</li>
+            <li class="password-rule" data-rule="lower">Una letra minuscula</li>
+            <li class="password-rule" data-rule="upper">Una letra mayuscula</li>
+            <li class="password-rule" data-rule="number">Un numero</li>
+            <li class="password-rule" data-rule="symbol">Un signo</li>
+            <li class="password-rule" data-rule="match">Coinciden</li>
+          </ul>
+          <button class="btn btn-primary login-submit" type="submit" id="password-submit" disabled>
+            Guardar contrasena
+          </button>
+          <p class="login-error" id="password-error" role="alert"></p>
+          <p class="password-success" id="password-success" role="status"></p>
+          <p class="password-status" id="password-status">Validando enlace...</p>
+        </form>
+
+        <p class="login-foot">
+          La contrasena se guarda cifrada en Supabase y nunca se muestra en texto.
+        </p>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/password.js"></script>
+  </body>
+</html>
