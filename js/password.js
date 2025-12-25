@@ -136,6 +136,8 @@
       refresh_token: params.get("refresh_token"),
       type: params.get("type"),
       token_hash: params.get("token_hash"),
+      token: params.get("token"),
+      code: params.get("code"),
     };
   }
 
@@ -145,6 +147,38 @@
     }
   }
 
+  function markInviteVerified() {
+    if (window.sessionStorage) {
+      window.sessionStorage.setItem("nolvax_invite_verified", "1");
+    }
+  }
+
+  function hasInviteMarker() {
+    return window.sessionStorage?.getItem("nolvax_invite_verified") === "1";
+  }
+
+  async function verifyWithToken(type, tokenHash, token) {
+    if (tokenHash) {
+      const { error } = await supabaseClient.auth.verifyOtp({
+        type,
+        token_hash: tokenHash,
+      });
+      if (!error) {
+        return true;
+      }
+    }
+    if (token) {
+      const { error } = await supabaseClient.auth.verifyOtp({
+        type,
+        token,
+      });
+      if (!error) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   async function ensureSession() {
     if (!supabaseClient) {
       setError("No se encontro la conexion a Supabase.");
@@ -152,19 +186,24 @@
     }
 
     const url = new URL(window.location.href);
-    const code = url.searchParams.get("code");
-    const tokenHash = url.searchParams.get("token_hash");
-    const type = url.searchParams.get("type");
     const hashParams = parseHashParams();
+    const code = url.searchParams.get("code") || hashParams.code;
+    const tokenHash =
+      url.searchParams.get("token_hash") ||
+      hashParams.token_hash ||
+      url.searchParams.get("token");
+    const token = url.searchParams.get("token") || hashParams.token;
+    const type = url.searchParams.get("type") || hashParams.type || "invite";
 
     if (code) {
       const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
       if (error) {
-        setError("El enlace no es valido o ya expiro.");
-        return false;
+        // Continua con otros metodos de verificacion.
+      } else {
+        markInviteVerified();
+        clearUrl();
+        return true;
       }
-      clearUrl();
-      return true;
     }
 
     if (hashParams.access_token && hashParams.refresh_token) {
@@ -172,30 +211,27 @@
         access_token: hashParams.access_token,
         refresh_token: hashParams.refresh_token,
       });
-      if (error) {
-        setError("El enlace no es valido o ya expiro.");
-        return false;
+      if (!error) {
+        markInviteVerified();
+        clearUrl();
+        return true;
       }
-      clearUrl();
-      return true;
     }
 
-    if (tokenHash && type) {
-      const { error } = await supabaseClient.auth.verifyOtp({
-        type,
-        token_hash: tokenHash,
-      });
-      if (error) {
-        setError("El enlace no es valido o ya expiro.");
-        return false;
+    if (tokenHash || token) {
+      const ok = await verifyWithToken(type, tokenHash, token);
+      if (ok) {
+        markInviteVerified();
+        clearUrl();
+        return true;
       }
-      clearUrl();
-      return true;
     }
 
-    const { data } = await supabaseClient.auth.getSession();
-    if (data?.session) {
-      return true;
+    if (hasInviteMarker()) {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data?.session) {
+        return true;
+      }
     }
 
     setError("Enlace no valido. Solicita una nueva invitacion.");
