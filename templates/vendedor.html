@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Ventas</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body data-access="seller">
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Ventas</p>
+            <p class="login-note">Acceso vendedor</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          Captura clientes y gestiona comisiones con control total.
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="brand-title">Nolvax Ventas</p>
+            <p class="brand-sub">Comisiones y clientes</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link active" href="vendedor.html">Mi panel</a>
+          <a class="nav-link" href="#captura">Alta cliente</a>
+          <a class="nav-link" href="#clientes">Mis clientes</a>
+          <a class="nav-link" href="#comisiones">Comisiones</a>
+          <a class="nav-link" href="#metas">Metas</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">1 seguimiento</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 5 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="#captura">Nuevo cliente</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <header class="topbar">
+            <div class="headline">
+              <p class="kicker">Ventas</p>
+              <h1>Panel de vendedor</h1>
+              <p class="subtitle">
+                Captura nuevos clientes y registra comisiones para liquidaciones.
+              </p>
+            </div>
+          </header>
+
+          <section class="metrics">
+            <div class="metric-card" style="--i: 1">
+              <p class="metric-label">Clientes activos</p>
+              <p class="metric-value" id="seller-metric-clients">0</p>
+              <p class="metric-note">Asignados a tu cartera</p>
+            </div>
+            <div class="metric-card" style="--i: 2">
+              <p class="metric-label">MRR en gestion</p>
+              <p class="metric-value" id="seller-metric-mrr">CLP 0</p>
+              <p class="metric-note">Ingresos proyectados</p>
+            </div>
+            <div class="metric-card" style="--i: 3">
+              <p class="metric-label">Comision estimada</p>
+              <p class="metric-value" id="seller-metric-commission">CLP 0</p>
+              <p class="metric-note">Calculada con tu plan</p>
+            </div>
+            <div class="metric-card" style="--i: 4">
+              <p class="metric-label">Pipeline abierto</p>
+              <p class="metric-value" id="seller-metric-pipeline">CLP 0</p>
+              <p class="metric-note">Oportunidades sin cierre</p>
+            </div>
+          </section>
+
+          <section class="content-grid">
+            <div class="column">
+              <article class="panel" style="--i: 5" id="captura">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Alta cliente</p>
+                    <h2>Registrar nuevo cliente</h2>
+                  </div>
+                  <span class="chip chip-soft">Solo vendedores</span>
+                </div>
+                <form class="form-grid" id="seller-form">
+                  <div class="field">
+                    <label for="seller-company">Empresa</label>
+                    <input id="seller-company" name="company_name" placeholder="Nombre empresa" />
+                  </div>
+                  <div class="field">
+                    <label for="seller-plan">Plan propuesto</label>
+                    <select id="seller-plan" name="plan">
+                      <option value="Base">Base</option>
+                      <option value="Plus">Plus</option>
+                      <option value="Pro">Pro</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="seller-first-name">Primer nombre</label>
+                    <input id="seller-first-name" name="first_name" />
+                  </div>
+                  <div class="field">
+                    <label for="seller-second-name">Segundo nombre</label>
+                    <input id="seller-second-name" name="second_name" placeholder="Gabriel A." />
+                  </div>
+                  <div class="field">
+                    <label for="seller-last-name">Primer apellido</label>
+                    <input id="seller-last-name" name="last_name" />
+                  </div>
+                  <div class="field">
+                    <label for="seller-last-name-2">Segundo apellido</label>
+                    <input id="seller-last-name-2" name="last_name2" />
+                  </div>
+                  <div class="field">
+                    <label for="seller-email">Email</label>
+                    <input id="seller-email" name="email" type="email" required />
+                  </div>
+                  <div class="field">
+                    <label for="seller-rut">RUT cliente</label>
+                    <input id="seller-rut" name="rut" placeholder="12.345.678-9" />
+                  </div>
+                  <div class="field span-2">
+                    <label for="seller-phone">Telefono</label>
+                    <div class="phone-group">
+                      <span class="phone-prefix" aria-hidden="true">+56</span>
+                      <input
+                        id="seller-phone"
+                        name="phone"
+                        class="phone-input"
+                        inputmode="numeric"
+                        autocomplete="tel-national"
+                        placeholder="9 1234 5678"
+                      />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="seller-commission-rate">Comision %</label>
+                    <input
+                      id="seller-commission-rate"
+                      name="commission_rate"
+                      inputmode="decimal"
+                      placeholder="6.5"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="seller-commission-fixed">Comision fija</label>
+                    <input
+                      id="seller-commission-fixed"
+                      name="commission_fixed"
+                      inputmode="numeric"
+                      placeholder="CLP 0"
+                    />
+                  </div>
+                  <div class="field">
+                    <label for="seller-mrr">MRR esperado</label>
+                    <input id="seller-mrr" name="mrr" inputmode="numeric" placeholder="CLP 0" />
+                  </div>
+                  <div class="field">
+                    <label for="seller-close-date">Fecha cierre</label>
+                    <input id="seller-close-date" name="close_date" type="date" />
+                  </div>
+                  <div class="field span-2">
+                    <label for="seller-notes">Notas comerciales</label>
+                    <textarea
+                      id="seller-notes"
+                      name="notes"
+                      rows="3"
+                      placeholder="Objeciones, acuerdos, proxima llamada."
+                    ></textarea>
+                  </div>
+                  <div class="form-actions span-2">
+                    <button class="btn btn-primary" type="submit">Registrar cliente</button>
+                    <button class="btn btn-ghost" type="button">Guardar borrador</button>
+                  </div>
+                  <p class="form-status span-2" id="seller-form-status" role="status"></p>
+                </form>
+              </article>
+
+              <article class="panel" style="--i: 6">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Pipeline</p>
+                    <h2>Seguimientos prioritarios</h2>
+                  </div>
+                  <span class="chip chip-warn">Hoy</span>
+                </div>
+                <ul class="timeline">
+                  <li>
+                    <span class="time">09:30</span>
+                    <div>
+                      <p class="event-title">Demo para Plaza Norte</p>
+                      <p class="event-note">Enviar propuesta con descuento anual.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span class="time">11:10</span>
+                    <div>
+                      <p class="event-title">Seguimiento El Eden</p>
+                      <p class="event-note">Confirmar fecha de firma contrato.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span class="time">16:00</span>
+                    <div>
+                      <p class="event-title">Renovacion Tienda Azul</p>
+                      <p class="event-note">Negociar upgrade a plan Pro.</p>
+                    </div>
+                  </li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="column">
+              <article class="panel" style="--i: 7" id="clientes">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Clientes</p>
+                    <h2>Tu cartera activa</h2>
+                  </div>
+                  <label class="search">
+                    <span>Buscar</span>
+                    <input
+                      id="seller-filter-search"
+                      type="search"
+                      placeholder="Cliente, email o empresa"
+                    />
+                  </label>
+                </div>
+                <ul class="list" id="seller-client-list"></ul>
+              </article>
+
+              <article class="panel" style="--i: 8" id="comisiones">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Comisiones</p>
+                    <h2>Liquidacion del mes</h2>
+                  </div>
+                  <span class="chip chip-soft">En revision</span>
+                </div>
+                <div class="table" id="seller-commission-list"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="stack" id="metas">
+            <article class="panel" style="--i: 9">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Metas</p>
+                  <h2>Objetivos del trimestre</h2>
+                </div>
+                <span class="chip chip-live">Seguimiento</span>
+              </div>
+              <div class="stack">
+                <div class="goal-card">
+                  <div class="goal-head">
+                    <p class="list-title">MRR mensual</p>
+                    <span class="chip chip-soft" id="seller-goal-mrr-label">CLP 0 / CLP 3000000</span>
+                  </div>
+                  <div class="progress" id="seller-goal-mrr" data-goal="3000000">
+                    <span class="progress-bar"></span>
+                  </div>
+                  <p class="progress-note" id="seller-goal-mrr-note">0% del objetivo</p>
+                </div>
+                <div class="goal-card">
+                  <div class="goal-head">
+                    <p class="list-title">Nuevos clientes</p>
+                    <span class="chip chip-soft" id="seller-goal-clients-label">0 / 12</span>
+                  </div>
+                  <div class="progress" id="seller-goal-clients" data-goal="12">
+                    <span class="progress-bar"></span>
+                  </div>
+                  <p class="progress-note" id="seller-goal-clients-note">0% del objetivo</p>
+                </div>
+                <div class="goal-card">
+                  <div class="goal-head">
+                    <p class="list-title">Conversion</p>
+                    <span class="chip chip-soft" id="seller-goal-conversion-label">0 / 35</span>
+                  </div>
+                  <div class="progress" id="seller-goal-conversion" data-goal="35">
+                    <span class="progress-bar"></span>
+                  </div>
+                  <p class="progress-note" id="seller-goal-conversion-note">0% del objetivo</p>
+                </div>
+              </div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/vendedor.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>

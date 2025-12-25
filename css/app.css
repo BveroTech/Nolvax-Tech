@@ -538,6 +538,10 @@ h1 {
   grid-column: span 2;
 }
 
+.span-3 {
+  grid-column: span 3;
+}
+
 .form-actions {
   display: flex;
   gap: 12px;
@@ -642,6 +646,78 @@ h1 {
   margin: 0;
   display: grid;
   gap: 12px;
+}
+
+.table {
+  display: grid;
+  gap: 10px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+}
+
+.table-row.is-head {
+  background: transparent;
+  border: none;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: var(--ink-soft);
+}
+
+.table-cell {
+  font-size: 0.85rem;
+}
+
+.table-strong {
+  font-weight: 600;
+}
+
+.goal-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+}
+
+.goal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.progress {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(30, 26, 22, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar {
+  display: block;
+  height: 100%;
+  width: var(--value, 0%);
+  background: linear-gradient(135deg, var(--accent), var(--accent-3));
+}
+
+.progress-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
 }
 
 .list-item {
@@ -864,6 +940,14 @@ h1 {
   .search input {
     min-width: 0;
     width: 100%;
+  }
+
+  .table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .table-row.is-head {
+    display: none;
   }
 }
 

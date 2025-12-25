@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Superusuario</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+            <p class="login-note">Acceso propietario</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          Control total de roles, precios, seguridad y continuidad.
+        </p>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="brand-title">Nolvax Admin</p>
+            <p class="brand-sub">Control SaaS</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link" href="panel.html">Panel</a>
+          <a class="nav-link active" href="superusuario.html">Superusuario</a>
+          <a class="nav-link" href="empresas.html">Empresas</a>
+          <a class="nav-link" href="usuarios.html">Usuarios</a>
+          <a class="nav-link" href="vendedor.html">Ventas</a>
+          <a class="nav-link" href="suscripcion.html">Suscripcion</a>
+          <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="auditoria.html">Auditoria</a>
+          <a class="nav-link" href="soporte.html">Soporte</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">1 alerta</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 2 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="panel.html">Abrir centro de control</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <header class="topbar">
+            <div class="headline">
+              <p class="kicker">Gobierno global</p>
+              <h1>Control total del ecosistema Nolvax</h1>
+              <p class="subtitle">
+                Define politicas, precios y seguridad con trazabilidad completa.
+              </p>
+            </div>
+            <div class="top-actions">
+              <label class="search">
+                <span>Buscar</span>
+                <input type="search" placeholder="Tenant, usuario, plan, alerta" />
+              </label>
+              <button class="btn btn-primary" type="button">Crear superusuario</button>
+            </div>
+          </header>
+
+          <section class="metrics">
+            <div class="metric-card" style="--i: 1">
+              <p class="metric-label">MRR total</p>
+              <p class="metric-value">CLP 38.2M</p>
+              <p class="metric-note">Ingresos recurrentes</p>
+            </div>
+            <div class="metric-card" style="--i: 2">
+              <p class="metric-label">Empresas activas</p>
+              <p class="metric-value">128</p>
+              <p class="metric-note">Con planes al dia</p>
+            </div>
+            <div class="metric-card" style="--i: 3">
+              <p class="metric-label">Usuarios con MFA</p>
+              <p class="metric-value">74%</p>
+              <p class="metric-note">Cumplimiento de seguridad</p>
+            </div>
+            <div class="metric-card" style="--i: 4">
+              <p class="metric-label">Incidentes abiertos</p>
+              <p class="metric-value">2</p>
+              <p class="metric-note">Operaciones criticas</p>
+            </div>
+          </section>
+
+          <section class="content-grid">
+            <div class="column">
+              <article class="panel" style="--i: 5">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Acciones criticas</p>
+                    <h2>Decisiones de alto impacto</h2>
+                  </div>
+                  <span class="chip chip-alert">Supervision</span>
+                </div>
+                <ul class="list">
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Bloquear cobros masivos</p>
+                      <p class="list-note">Suspende cobros en modo incidente.</p>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">Preparar</button>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Revocar accesos globales</p>
+                      <p class="list-note">Corta sesiones en todos los tenants.</p>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">Verificar</button>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Restaurar backup total</p>
+                      <p class="list-note">Ultimo backup valido: Hace 3 horas.</p>
+                    </div>
+                    <button class="btn btn-ghost btn-xs" type="button">Simular</button>
+                  </li>
+                </ul>
+              </article>
+
+              <article class="panel" style="--i: 6">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Equipo propietario</p>
+                    <h2>Invitar superusuarios</h2>
+                  </div>
+                  <span class="chip chip-soft">Acceso total</span>
+                </div>
+                <form class="form-grid compact">
+                  <div class="field">
+                    <label for="super-name">Nombre completo</label>
+                    <input id="super-name" placeholder="Nombre y apellido" />
+                  </div>
+                  <div class="field">
+                    <label for="super-email">Email</label>
+                    <input id="super-email" type="email" placeholder="super@nolvax.com" />
+                  </div>
+                  <div class="field">
+                    <label for="super-role">Nivel de acceso</label>
+                    <select id="super-role">
+                      <option value="owner">Owner</option>
+                      <option value="superadmin">Superusuario</option>
+                      <option value="security">Seguridad</option>
+                      <option value="finance">Finanzas</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="super-scope">Alcance</label>
+                    <select id="super-scope">
+                      <option value="global">Global</option>
+                      <option value="latam">LATAM</option>
+                      <option value="chile">Chile</option>
+                    </select>
+                  </div>
+                  <div class="field span-2">
+                    <label for="super-notes">Notas internas</label>
+                    <textarea id="super-notes" rows="3" placeholder="Motivo y alcance."></textarea>
+                  </div>
+                  <div class="form-actions span-2">
+                    <button class="btn btn-primary" type="button">Enviar invitacion</button>
+                    <button class="btn btn-ghost" type="button">Crear acceso directo</button>
+                  </div>
+                </form>
+              </article>
+
+              <article class="panel" style="--i: 7">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Roles y permisos</p>
+                    <h2>Gobierno RBAC</h2>
+                  </div>
+                  <span class="chip chip-live">Activo</span>
+                </div>
+                <ul class="list">
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Owner</p>
+                      <p class="list-note">Acceso total, edicion de billing y seguridad.</p>
+                    </div>
+                    <span class="chip chip-live">1 activo</span>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Superusuario</p>
+                      <p class="list-note">Gestion de tenants, usuarios y modulos.</p>
+                    </div>
+                    <span class="chip chip-soft">4 activos</span>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Finanzas</p>
+                      <p class="list-note">Cartera, pagos, notas de credito.</p>
+                    </div>
+                    <span class="chip chip-warn">2 activos</span>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Seguridad</p>
+                      <p class="list-note">MFA, IP allowlist, alertas criticas.</p>
+                    </div>
+                    <span class="chip chip-warn">1 activo</span>
+                  </li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="column">
+              <article class="panel" style="--i: 8">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Seguridad y cumplimiento</p>
+                    <h2>Politicas globales</h2>
+                  </div>
+                  <span class="chip chip-warn">Revisar</span>
+                </div>
+                <div class="stack">
+                  <div class="switch-row">
+                    <div>
+                      <p class="switch-title">MFA obligatorio</p>
+                      <p class="switch-note">Exige doble factor para admins y staff.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="switch-row">
+                    <div>
+                      <p class="switch-title">Allowlist de IP</p>
+                      <p class="switch-note">Solo accesos desde redes aprobadas.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="switch-row">
+                    <div>
+                      <p class="switch-title">Sesion maxima 12h</p>
+                      <p class="switch-note">Cierra sesiones largas automaticamente.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="switch-row">
+                    <div>
+                      <p class="switch-title">Logs inmutables</p>
+                      <p class="switch-note">Retencion de auditoria por 18 meses.</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" checked />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel" style="--i: 9">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Salud del sistema</p>
+                    <h2>Estado operativo</h2>
+                  </div>
+                  <span class="chip chip-live">Estable</span>
+                </div>
+                <ul class="list">
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Latencia API</p>
+                      <p class="list-note">Promedio 180ms en ultimas 24h.</p>
+                    </div>
+                    <span class="chip chip-live">OK</span>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">Jobs en cola</p>
+                      <p class="list-note">7 tareas pendientes de sincronizacion.</p>
+                    </div>
+                    <span class="chip chip-warn">Revisar</span>
+                  </li>
+                  <li class="list-item">
+                    <div>
+                      <p class="list-title">SLA mensual</p>
+                      <p class="list-note">Disponibilidad 99.96%.</p>
+                    </div>
+                    <span class="chip chip-live">OK</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article class="panel" style="--i: 10">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Integraciones core</p>
+                    <h2>Conectores criticos</h2>
+                  </div>
+                  <span class="chip chip-soft">12 activos</span>
+                </div>
+                <div class="support-grid">
+                  <div class="support-card">
+                    <p class="support-title">Facturacion electronica</p>
+                    <p class="support-note">Sunat / SII / DIAN.</p>
+                  </div>
+                  <div class="support-card">
+                    <p class="support-title">Pago online</p>
+                    <p class="support-note">Transbank, Stripe, MercadoPago.</p>
+                  </div>
+                  <div class="support-card">
+                    <p class="support-title">Contabilidad</p>
+                    <p class="support-note">Exportaciones automaticas mensuales.</p>
+                  </div>
+                  <div class="support-card">
+                    <p class="support-title">Mensajeria</p>
+                    <p class="support-note">SMS, WhatsApp, correo transaccional.</p>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="stack">
+            <article class="panel" style="--i: 11">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Planes y facturacion</p>
+                  <h2>Catalogo comercial</h2>
+                </div>
+                <span class="chip chip-soft">Editable</span>
+              </div>
+              <form class="form-grid compact">
+                <div class="field">
+                  <label for="plan-base">Plan Base</label>
+                  <input id="plan-base" placeholder="CLP 39.990" />
+                </div>
+                <div class="field">
+                  <label for="plan-plus">Plan Plus</label>
+                  <input id="plan-plus" placeholder="CLP 69.990" />
+                </div>
+                <div class="field">
+                  <label for="plan-pro">Plan Pro</label>
+                  <input id="plan-pro" placeholder="CLP 99.990" />
+                </div>
+                <div class="field">
+                  <label for="plan-tax">IVA</label>
+                  <input id="plan-tax" placeholder="19%" />
+                </div>
+                <div class="field">
+                  <label for="plan-cycle">Ciclo de cobro</label>
+                  <select id="plan-cycle">
+                    <option>Mensual</option>
+                    <option>Trimestral</option>
+                    <option>Anual</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="plan-grace">Dias de gracia</label>
+                  <input id="plan-grace" placeholder="5 dias" />
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="button">Guardar cambios</button>
+                  <button class="btn btn-ghost" type="button">Simular precios</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="panel" style="--i: 12">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Feature flags</p>
+                  <h2>Modulos globales</h2>
+                </div>
+                <span class="chip chip-warn" id="module-off-count">3</span>
+              </div>
+              <div class="module-grid">
+                <div class="module-card">
+                  <div>
+                    <p class="module-title">POS en linea</p>
+                    <p class="module-note">Operacion principal de ventas.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-module checked />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="module-card">
+                  <div>
+                    <p class="module-title">Inventario avanzado</p>
+                    <p class="module-note">Control por bodegas y lotes.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-module />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="module-card">
+                  <div>
+                    <p class="module-title">Facturacion automatica</p>
+                    <p class="module-note">Emite documentos en segundo plano.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-module checked />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="module-card">
+                  <div>
+                    <p class="module-title">Analitica premium</p>
+                    <p class="module-note">Dashboards y prediccion de churn.</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" data-module />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel" style="--i: 13">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Auditoria global</p>
+                  <h2>Eventos criticos</h2>
+                </div>
+                <span class="chip chip-soft">Ultimas 24h</span>
+              </div>
+              <ul class="timeline">
+                <li>
+                  <span class="time">12:08</span>
+                  <div>
+                    <p class="event-title">Cambio de precio</p>
+                    <p class="event-note">Plan Pro actualizado a CLP 99.990.</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="time">10:40</span>
+                  <div>
+                    <p class="event-title">Alta de superusuario</p>
+                    <p class="event-note">Nuevo acceso para equipo finanzas.</p>
+                  </div>
+                </li>
+                <li>
+                  <span class="time">09:05</span>
+                  <div>
+                    <p class="event-title">Alerta de seguridad</p>
+                    <p class="event-note">Intento de login desde IP no permitida.</p>
+                  </div>
+                </li>
+              </ul>
+            </article>
+
+            <article class="panel" style="--i: 14">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Continuidad</p>
+                  <h2>Backups y recuperacion</h2>
+                </div>
+                <span class="chip chip-live">Protegido</span>
+              </div>
+              <ul class="list">
+                <li class="list-item">
+                  <div>
+                    <p class="list-title">Backup incremental</p>
+                    <p class="list-note">Cada 15 minutos, retencion 7 dias.</p>
+                  </div>
+                  <span class="chip chip-live">Activo</span>
+                </li>
+                <li class="list-item">
+                  <div>
+                    <p class="list-title">Backup completo</p>
+                    <p class="list-note">Diario 03:00, retencion 90 dias.</p>
+                  </div>
+                  <span class="chip chip-live">Activo</span>
+                </li>
+                <li class="list-item">
+                  <div>
+                    <p class="list-title">Simulacion de desastre</p>
+                    <p class="list-note">Ultima prueba: hace 45 dias.</p>
+                  </div>
+                  <button class="btn btn-ghost btn-xs" type="button">Programar</button>
+                </li>
+              </ul>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>

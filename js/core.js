@@ -5,6 +5,8 @@
     SUPERUSER_ROLE: "superadmin",
     MEGA_SUPERUSER_EMAIL: "nolvaxtech@gmail.com",
     SUPERUSER_EMAILS: [],
+    SELLER_ROLES: ["seller", "vendedor"],
+    SELLER_LABEL: "Vendedor",
     OWNER_ROLE_VALUE: "owner",
     data: {
       STATE_TABLE: "nolvax_admin_state",
@@ -108,7 +110,17 @@
     if (!role) {
       return "";
     }
-    return role.charAt(0).toUpperCase() + role.slice(1);
+    const normalized = role.toLowerCase();
+    const map = {
+      admin: "Admin",
+      manager: "Manager",
+      cashier: "Cashier",
+      support: "Soporte",
+      owner: "Owner",
+      seller: "Vendedor",
+      vendedor: "Vendedor",
+    };
+    return map[normalized] || role.charAt(0).toUpperCase() + role.slice(1);
   }
 
   function buildUserDisplayName(user) {

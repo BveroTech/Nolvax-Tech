@@ -15,6 +15,7 @@
   const sessionEmail = document.getElementById("session-email");
   const sessionRole = document.getElementById("session-role");
   const logoutBtn = document.getElementById("logout-btn");
+  const accessMode = document.body?.dataset.access || "super";
 
   function setLoginError(message) {
     if (!loginError) {
@@ -42,7 +43,7 @@
     }
   }
 
-  function setAuthView(user) {
+  function setAuthView(user, accessLabel) {
     const isAuthed = Boolean(user);
     if (loginScreen) {
       loginScreen.classList.toggle("is-hidden", isAuthed);
@@ -54,7 +55,7 @@
       sessionEmail.textContent = isAuthed ? user.email : "-";
     }
     if (sessionRole) {
-      sessionRole.textContent = "-";
+      sessionRole.textContent = isAuthed ? accessLabel || "-" : "-";
     }
   }
 
@@ -82,32 +83,73 @@
       }
     }
 
+    if (normalizedRole) {
+      const sellerRoles = Array.isArray(N.config.SELLER_ROLES)
+        ? N.config.SELLER_ROLES
+        : [N.config.SELLER_ROLE || "seller"];
+      if (sellerRoles.map((value) => String(value).toLowerCase()).includes(normalizedRole)) {
+        return "seller";
+      }
+    }
+
     return "none";
+  }
+
+  function getAccessLabel(accessLevel) {
+    if (accessLevel === "mega") {
+      return "Owner";
+    }
+    if (accessLevel === "super") {
+      return "Superusuario";
+    }
+    if (accessLevel === "seller") {
+      return N.config.SELLER_LABEL || "Vendedor";
+    }
+    return "-";
+  }
+
+  function isAccessAllowed(accessLevel) {
+    if (accessMode === "seller") {
+      return ["seller", "super", "mega"].includes(accessLevel);
+    }
+    return ["super", "mega"].includes(accessLevel);
   }
 
   async function applySession(session, onAuthed) {
     const user = session?.user || null;
 
     if (!user) {
+      if (N.session) {
+        N.session = null;
+      }
       setAuthView(null);
       return;
     }
 
     const accessLevel = getAccessLevel(user);
-    if (accessLevel === "none") {
-      setLoginError("Acceso denegado: usuario sin permisos de superusuario.");
+    if (!isAccessAllowed(accessLevel)) {
+      const errorMessage =
+        accessMode === "seller"
+          ? "Acceso denegado: usuario sin permisos de vendedor."
+          : "Acceso denegado: usuario sin permisos de superusuario.";
+      setLoginError(errorMessage);
       if (supabaseClient) {
         await supabaseClient.auth.signOut();
+      }
+      if (N.session) {
+        N.session = null;
       }
       setAuthView(null);
       return;
     }
 
     setLoginError("");
-    setAuthView(user);
-    if (sessionRole) {
-      sessionRole.textContent = accessLevel === "mega" ? "Owner" : "Superusuario";
-    }
+    const accessLabel = getAccessLabel(accessLevel);
+    setAuthView(user, accessLabel);
+    N.session = {
+      user,
+      accessLevel,
+    };
     if (typeof onAuthed === "function") {
       await onAuthed();
     }
