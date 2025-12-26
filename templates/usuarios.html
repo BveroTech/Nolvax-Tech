@@ -37,7 +37,7 @@
         <div class="brand">
           <img class="brand-mark logo-img" src="../logo%20ico.png" alt="Nolvax" />
           <div>
-            <img class="brand-title-logo" src="../logo%20texto.png" alt="Nolvax" />
+            <img class="brand-title-logo" src="../logo%20texto%20dark.png" alt="Nolvax" />
             <p class="brand-sub">Control SaaS</p>
           </div>
         </div>
@@ -227,6 +227,145 @@
               </div>
               <ul class="list" id="user-list-client"></ul>
             </article>
+
+            <article class="panel" style="--i: 5">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Staff</p>
+                  <h2>Administracion del equipo interno</h2>
+                </div>
+                <span class="chip chip-soft">Operaciones</span>
+              </div>
+              <form class="form-grid" id="staff-form">
+                <div class="field">
+                  <label for="staff-user">Colaborador</label>
+                  <select id="staff-user" name="staff_user"></select>
+                </div>
+                <div class="field">
+                  <label for="staff-area">Area</label>
+                  <select id="staff-area" name="staff_area">
+                    <option value="Soporte">Soporte</option>
+                    <option value="Implementacion">Implementacion</option>
+                    <option value="Operaciones">Operaciones</option>
+                    <option value="Finanzas">Finanzas</option>
+                    <option value="Ventas">Ventas</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="staff-shift">Turno</label>
+                  <select id="staff-shift" name="staff_shift">
+                    <option value="Manana">Manana</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noche">Noche</option>
+                    <option value="On-call">On-call</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="staff-status">Estado</label>
+                  <select id="staff-status" name="staff_status">
+                    <option value="activo">Activo</option>
+                    <option value="pausa">En pausa</option>
+                    <option value="vacaciones">Vacaciones</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="staff-lead">Lider directo</label>
+                  <input id="staff-lead" name="staff_lead" placeholder="Nombre lider" />
+                </div>
+                <div class="field">
+                  <label for="staff-start">Inicio turno</label>
+                  <input id="staff-start" name="staff_start" type="date" />
+                </div>
+                <div class="field">
+                  <label for="staff-sla">SLA objetivo (%)</label>
+                  <input id="staff-sla" name="staff_sla" inputmode="decimal" placeholder="98" />
+                </div>
+                <div class="field">
+                  <label for="staff-score">KPI semanal</label>
+                  <input id="staff-score" name="staff_score" inputmode="numeric" placeholder="85" />
+                </div>
+                <div class="field span-2">
+                  <label for="staff-notes">Notas internas</label>
+                  <textarea
+                    id="staff-notes"
+                    name="staff_notes"
+                    rows="3"
+                    placeholder="Objetivos, incidencias o acuerdos."
+                  ></textarea>
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="submit">Guardar asignacion</button>
+                  <button class="btn btn-ghost" type="button">Generar reporte</button>
+                </div>
+                <p class="form-status span-2" id="staff-form-status" role="status"></p>
+              </form>
+            </article>
+
+            <article class="panel" style="--i: 6">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Cobertura</p>
+                  <h2>Turnos activos</h2>
+                </div>
+                <span class="chip chip-live">En linea</span>
+              </div>
+              <div class="table" id="staff-schedule-list"></div>
+            </article>
+
+            <article class="panel" style="--i: 7">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Rendimiento</p>
+                  <h2>SLA y productividad</h2>
+                </div>
+                <span class="chip chip-soft">Ultima semana</span>
+              </div>
+              <div class="table" id="staff-kpi-list"></div>
+            </article>
+
+            <article class="panel" style="--i: 8">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Solicitudes internas</p>
+                  <h2>Accesos y permisos</h2>
+                </div>
+                <span class="chip chip-warn">Pendientes</span>
+              </div>
+              <ul class="list" id="staff-requests-list"></ul>
+            </article>
+
+            <article class="panel" style="--i: 9">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Alertas operativas</p>
+                  <h2>Riesgos y SLA en seguimiento</h2>
+                </div>
+                <span class="chip chip-alert">Critico</span>
+              </div>
+              <ul class="list" id="staff-alerts-list"></ul>
+            </article>
+
+            <article class="panel" style="--i: 10">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Capacitacion</p>
+                  <h2>Compliance y entrenamientos</h2>
+                </div>
+                <span class="chip chip-soft">Cultura</span>
+              </div>
+              <div class="stack" id="staff-training-list"></div>
+            </article>
+
+            <article class="panel" style="--i: 11">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Feedback</p>
+                  <h2>Evaluaciones y 1:1</h2>
+                </div>
+                <span class="chip chip-live">Agenda</span>
+              </div>
+              <ul class="list" id="staff-feedback-list"></ul>
+            </article>
           </div>
         </section>
       </main>
@@ -238,6 +377,7 @@
     <script src="../js/ui.js"></script>
     <script src="../js/companies.js"></script>
     <script src="../js/users.js"></script>
+    <script src="../js/staff.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/app.js"></script>
   </body>

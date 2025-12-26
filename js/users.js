@@ -531,6 +531,9 @@
     });
     updateUserSummary(filters);
     updateUserPanels(filters.type);
+    if (N.staff?.renderAll) {
+      N.staff.renderAll();
+    }
   }
 
   async function handleUserSubmit(event) {

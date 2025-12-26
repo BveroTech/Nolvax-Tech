@@ -26,6 +26,9 @@
     if (N.users?.renderLists) {
       N.users.renderLists();
     }
+    if (N.staff?.renderAll) {
+      N.staff.renderAll();
+    }
     if (N.vendedor?.renderAll) {
       N.vendedor.renderAll();
     }
@@ -50,6 +53,9 @@
     }
     if (N.users?.init) {
       N.users.init();
+    }
+    if (N.staff?.init) {
+      N.staff.init();
     }
     if (N.vendedor?.init) {
       N.vendedor.init();

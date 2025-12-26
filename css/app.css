@@ -234,6 +234,37 @@ body::before {
   width: auto;
 }
 
+.logo-block {
+  width: clamp(180px, 22vw, 280px);
+  height: clamp(60px, 10vw, 90px);
+  background: transparent;
+  border-radius: 18px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: none;
+}
+
+.logo-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-block .logo-dark {
+  display: none;
+}
+
+.logo-block.is-dark .logo-light {
+  display: none;
+}
+
+.logo-block.is-dark .logo-dark {
+  display: block;
+}
+
 .brand-sub {
   margin: 2px 0 0;
   color: rgba(248, 242, 232, 0.7);
