@@ -309,11 +309,26 @@
       return;
     }
 
-    setSuccess("Contrasena actualizada. Ya puedes iniciar sesion.");
+    setSuccess("Contrasena actualizada. Redirigiendo al inicio de sesion...");
     if (form) {
       form.reset();
     }
     updateValidation();
+    setTimeout(async () => {
+      if (supabaseClient) {
+        try {
+          await supabaseClient.auth.signOut();
+        } catch (_error) {
+          // Ignorar cierre fallido.
+        }
+      }
+      try {
+        const loginUrl = new URL("login.html", window.location.href).toString();
+        window.location.href = loginUrl;
+      } catch (_error) {
+        window.location.href = "login.html";
+      }
+    }, 1200);
   }
 
   async function init() {

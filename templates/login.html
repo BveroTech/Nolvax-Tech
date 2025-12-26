@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Acceso</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body data-access="general">
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="brand-mark">NVX</span>
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+            <p class="login-note">Acceso general</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+        <p class="login-foot">
+          El sistema detecta tu rol y abre el panel correspondiente.
+        </p>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>

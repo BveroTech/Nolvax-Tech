@@ -16,6 +16,7 @@
   const sessionRole = document.getElementById("session-role");
   const logoutBtn = document.getElementById("logout-btn");
   const accessMode = document.body?.dataset.access || "super";
+  const isGeneralLogin = accessMode === "general";
 
   function setLoginError(message) {
     if (!loginError) {
@@ -112,7 +113,23 @@
     if (accessMode === "seller") {
       return ["seller", "super", "mega"].includes(accessLevel);
     }
+    if (isGeneralLogin) {
+      return ["seller", "super", "mega"].includes(accessLevel);
+    }
     return ["super", "mega"].includes(accessLevel);
+  }
+
+  function getLandingPage(accessLevel) {
+    if (accessLevel === "seller") {
+      return "vendedor.html";
+    }
+    if (accessLevel === "mega") {
+      return "superusuario.html";
+    }
+    if (accessLevel === "super") {
+      return "panel.html";
+    }
+    return "panel.html";
   }
 
   async function applySession(session, onAuthed) {
@@ -131,6 +148,8 @@
       const errorMessage =
         accessMode === "seller"
           ? "Acceso denegado: usuario sin permisos de vendedor."
+          : isGeneralLogin
+            ? "Acceso denegado: usuario sin permisos para esta cuenta."
           : "Acceso denegado: usuario sin permisos de superusuario.";
       setLoginError(errorMessage);
       if (supabaseClient) {
@@ -150,6 +169,13 @@
       user,
       accessLevel,
     };
+    if (isGeneralLogin) {
+      const landing = getLandingPage(accessLevel);
+      if (landing && !window.location.pathname.endsWith(landing)) {
+        window.location.href = landing;
+        return;
+      }
+    }
     if (typeof onAuthed === "function") {
       await onAuthed();
     }
