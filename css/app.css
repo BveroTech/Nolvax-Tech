@@ -103,6 +103,59 @@ body::before {
   display: block;
 }
 
+.login-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-recovery {
+  display: none;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.login-recovery.is-visible {
+  display: grid;
+}
+
+.login-recovery-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.login-recovery-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.login-recovery-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.login-recovery-status.is-error {
+  color: #9f2b1f;
+}
+
+.login-recovery-status.is-success {
+  color: #0f5f54;
+}
+
 .login-foot {
   margin: 0;
   font-size: 0.8rem;
@@ -426,6 +479,12 @@ h1 {
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 22px;
+}
+
+.dual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -962,6 +1021,10 @@ h1 {
 
 @media (max-width: 900px) {
   .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dual-grid {
     grid-template-columns: 1fr;
   }
 

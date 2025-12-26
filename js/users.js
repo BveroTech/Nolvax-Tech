@@ -30,6 +30,44 @@
 
   const supabaseClient = window.supabaseClient;
 
+  function normalizeCompare(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function findUserByEmail(email) {
+    const normalized = N.utils.normalizeEmail(email);
+    if (!normalized) {
+      return null;
+    }
+    return N.state.users.find((item) => N.utils.normalizeEmail(item.email) === normalized) || null;
+  }
+
+  function isSameUserData(existing, data) {
+    if (!existing) {
+      return false;
+    }
+    const sameNames = normalizeCompare(existing.names) === normalizeCompare(data.names);
+    const sameLastnames = normalizeCompare(existing.lastnames) === normalizeCompare(data.lastnames);
+    const sameType = normalizeCompare(existing.userType) === normalizeCompare(data.userType);
+    const sameRole = normalizeCompare(existing.role) === normalizeCompare(data.role);
+    const sameRut = normalizeCompare(existing.rut) === normalizeCompare(data.rut);
+    const samePhone = normalizeCompare(existing.phone) === normalizeCompare(data.phone);
+    const sameCompanyId = data.companyId
+      ? normalizeCompare(existing.companyId) === normalizeCompare(data.companyId)
+      : true;
+    const sameCompanyName = normalizeCompare(existing.company) === normalizeCompare(data.company);
+    return (
+      sameNames &&
+      sameLastnames &&
+      sameType &&
+      sameRole &&
+      sameRut &&
+      samePhone &&
+      sameCompanyId &&
+      sameCompanyName
+    );
+  }
+
   function applyCompactFormat(input) {
     if (!input) {
       return "";
@@ -166,8 +204,8 @@
     };
   }
 
-  function upsertUserFromForm(formData, inviteStatus) {
-    const data = buildUserData(formData);
+  function upsertUserFromForm(formData, inviteStatus, prebuiltData) {
+    const data = prebuiltData || buildUserData(formData);
     const targetEmail = N.utils.normalizeEmail(data.email);
     if (!targetEmail) {
       return null;
@@ -202,6 +240,9 @@
     if (status === "sent") {
       return "Reenviar";
     }
+    if (status === "accepted") {
+      return "Reenviar";
+    }
     if (status === "failed") {
       return "Reintentar";
     }
@@ -212,6 +253,7 @@
   }
 
   async function sendInvite(user) {
+    const allowRecovery = user?.allowRecovery === true;
     if (!supabaseClient) {
       return { ok: false, error: "No se encontro la conexion a Supabase." };
     }
@@ -248,6 +290,9 @@
         }
       }
       if (detail.toLowerCase().includes("already been registered")) {
+        if (!allowRecovery) {
+          return { ok: false, error: "Usuario ya registrado.", code: "exists" };
+        }
         const { error: recoveryError } = await supabaseClient.auth.resetPasswordForEmail(
           user.email,
           { redirectTo: getInviteRedirectUrl() }
@@ -263,6 +308,9 @@
     if (response?.error) {
       const detail = String(response.error || "").trim();
       if (detail.toLowerCase().includes("already been registered")) {
+        if (!allowRecovery) {
+          return { ok: false, error: "Usuario ya registrado.", code: "exists" };
+        }
         const { error: recoveryError } = await supabaseClient.auth.resetPasswordForEmail(
           user.email,
           { redirectTo: getInviteRedirectUrl() }
@@ -291,13 +339,30 @@
       return;
     }
 
+    const formData = new FormData(userForm);
+    const data = buildUserData(formData);
+    const existing = findUserByEmail(data.email);
+    if (existing) {
+      if (!isSameUserData(existing, data)) {
+        setInviteStatus(
+          "El correo ya existe con datos distintos. Revisa la informacion antes de continuar.",
+          "error"
+        );
+        return;
+      }
+      setInviteStatus(
+        "Usuario ya existe. Reenvia la invitacion desde el listado o usa 'Olvide mi contrasena'.",
+        "error"
+      );
+      return;
+    }
+
     if (inviteButton) {
       inviteButton.disabled = true;
       inviteButton.textContent = "Enviando...";
     }
 
-    const formData = new FormData(userForm);
-    const user = upsertUserFromForm(formData, "pending");
+    const user = upsertUserFromForm(formData, "pending", data);
     if (!user) {
       setInviteStatus("Ingresa un email valido.", "error");
       if (inviteButton) {
@@ -307,7 +372,7 @@
       return;
     }
 
-    const result = await sendInvite(user);
+    const result = await sendInvite({ ...user, allowRecovery: false });
     if (inviteButton) {
       inviteButton.disabled = false;
       inviteButton.textContent = "Enviar invitacion";
@@ -477,11 +542,17 @@
         const metaInvite = document.createElement("p");
         metaInvite.className = "list-meta-line";
         metaInvite.textContent = `Invitacion: ${user.inviteStatus || "no enviada"}`;
+        const metaPassword = document.createElement("p");
+        metaPassword.className = "list-meta-line";
+        metaPassword.textContent = `Contrasena: ${
+          user.passwordStatus === "created" ? "Creada" : "Pendiente"
+        }`;
         meta.appendChild(metaEmail);
         meta.appendChild(metaRut);
         meta.appendChild(metaPhone);
         meta.appendChild(metaStatus);
         meta.appendChild(metaInvite);
+        meta.appendChild(metaPassword);
         if (user.disabledUntil) {
           const metaUntil = document.createElement("p");
           metaUntil.className = "list-meta-line";
@@ -538,8 +609,22 @@
     if (!userForm) {
       return;
     }
+    setInviteStatus("", "");
     const data = new FormData(userForm);
-    const user = upsertUserFromForm(data);
+    const built = buildUserData(data);
+    const existing = findUserByEmail(built.email);
+    if (existing) {
+      if (!isSameUserData(existing, built)) {
+        setInviteStatus(
+          "El correo ya existe con datos distintos. Revisa la informacion antes de continuar.",
+          "error"
+        );
+        return;
+      }
+      setInviteStatus("Usuario ya existe. Usa el listado para reenviar.", "error");
+      return;
+    }
+    const user = upsertUserFromForm(data, "", built);
     if (!user) {
       return;
     }
@@ -573,13 +658,19 @@
 
     const action = button.dataset.action;
     if (action === "invite") {
+      const confirmSend = window.confirm(
+        `Reenviar invitacion de contrasena a ${user.email}?`
+      );
+      if (!confirmSend) {
+        return;
+      }
       user.inviteStatus = "pending";
       user.inviteUpdatedAt = new Date().toISOString();
       if (N.data?.saveState) {
         await N.data.saveState();
       }
       renderLists();
-      const result = await sendInvite(user);
+      const result = await sendInvite({ ...user, allowRecovery: true });
       user.inviteStatus = result.ok ? "sent" : "failed";
       user.inviteUpdatedAt = new Date().toISOString();
       if (N.data?.saveState) {

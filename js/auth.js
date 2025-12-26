@@ -15,6 +15,13 @@
   const sessionEmail = document.getElementById("session-email");
   const sessionRole = document.getElementById("session-role");
   const logoutBtn = document.getElementById("logout-btn");
+  const recoveryToggle = document.getElementById("login-recovery-toggle");
+  const recoveryPanel = document.getElementById("login-recovery");
+  const recoveryForm = document.getElementById("recovery-form");
+  const recoveryEmail = document.getElementById("recovery-email");
+  const recoveryRut = document.getElementById("recovery-rut");
+  const recoveryStatus = document.getElementById("recovery-status");
+  const recoveryCancel = document.getElementById("recovery-cancel");
   const accessMode = document.body?.dataset.access || "super";
   const isGeneralLogin = accessMode === "general";
 
@@ -41,6 +48,31 @@
     }
     if (loginPassword) {
       loginPassword.disabled = isBusy;
+    }
+  }
+
+  function setRecoveryStatus(message, tone) {
+    if (!recoveryStatus) {
+      return;
+    }
+    recoveryStatus.textContent = message || "";
+    recoveryStatus.classList.toggle("is-error", tone === "error");
+    recoveryStatus.classList.toggle("is-success", tone === "success");
+  }
+
+  function toggleRecovery(show) {
+    if (!recoveryPanel || !loginForm) {
+      return;
+    }
+    recoveryPanel.classList.toggle("is-visible", show);
+    loginForm.classList.toggle("is-hidden", show);
+    const foot = document.querySelector(".login-foot");
+    if (foot) {
+      foot.classList.toggle("is-hidden", show);
+    }
+    if (show) {
+      setLoginError("");
+      setRecoveryStatus("", "");
     }
   }
 
@@ -145,6 +177,63 @@
       return "panel.html";
     }
     return "panel.html";
+  }
+
+  async function handleRecoverySubmit(event) {
+    event.preventDefault();
+    setRecoveryStatus("", "");
+    if (!supabaseClient) {
+      setRecoveryStatus("No se encontro la conexion a Supabase.", "error");
+      return;
+    }
+    const email = (recoveryEmail?.value || "").trim();
+    if (!email) {
+      setRecoveryStatus("Ingresa tu email.", "error");
+      return;
+    }
+    const rutInput = recoveryRut?.value || "";
+    const rut = N.utils?.formatRutInput ? N.utils.formatRutInput(rutInput) : rutInput.trim();
+    if (!rut) {
+      setRecoveryStatus("Ingresa tu RUT.", "error");
+      return;
+    }
+    if (recoveryRut) {
+      recoveryRut.value = rut;
+    }
+
+    const { data, error } = await supabaseClient
+      .from(N.config.data.STATE_TABLE)
+      .select("users")
+      .eq("id", N.config.data.STATE_ROW_ID)
+      .maybeSingle();
+    if (error || !data?.users) {
+      setRecoveryStatus("No se pudo validar la cuenta. Intenta nuevamente.", "error");
+      return;
+    }
+    const match = data.users.find(
+      (user) =>
+        N.utils.normalizeEmail(user.email) === N.utils.normalizeEmail(email) &&
+        N.utils.formatRutInput(user.rut || "") === rut
+    );
+    if (!match) {
+      setRecoveryStatus("Email y RUT no coinciden con ningun usuario.", "error");
+      return;
+    }
+
+    let redirectTo = "";
+    try {
+      redirectTo = new URL("crear-contrasena.html", window.location.href).toString();
+    } catch (_error) {
+      redirectTo = "crear-contrasena.html";
+    }
+    const { error: resetError } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+    if (resetError) {
+      setRecoveryStatus("No se pudo enviar el correo de recuperacion.", "error");
+      return;
+    }
+    setRecoveryStatus("Correo enviado. Revisa tu bandeja para continuar.", "success");
   }
 
   async function applySession(session, onAuthed) {
@@ -256,6 +345,33 @@
         setAuthView(null);
       });
     }
+    if (recoveryToggle && recoveryPanel) {
+      recoveryToggle.addEventListener("click", () => toggleRecovery(true));
+    }
+    if (recoveryCancel) {
+      recoveryCancel.addEventListener("click", () => toggleRecovery(false));
+    }
+    if (recoveryForm) {
+      recoveryForm.addEventListener("submit", handleRecoverySubmit);
+    }
+    if (!recoveryToggle && loginForm) {
+      const link = document.createElement("a");
+      link.className = "login-link";
+      link.id = "login-recovery-link";
+      link.href = "login.html#recovery";
+      link.textContent = "Olvide mi contrasena";
+      const actions = document.createElement("div");
+      actions.className = "login-actions";
+      actions.appendChild(link);
+      loginForm.appendChild(actions);
+    }
+    if (recoveryRut) {
+      recoveryRut.addEventListener("input", () => {
+        if (N.utils?.formatRutInput) {
+          recoveryRut.value = N.utils.formatRutInput(recoveryRut.value);
+        }
+      });
+    }
 
     const { data, error } = await supabaseClient.auth.getSession();
     if (error) {
@@ -265,6 +381,10 @@
     }
 
     await applySession(data.session, onAuthed);
+
+    if (window.location.hash === "#recovery" && recoveryPanel) {
+      toggleRecovery(true);
+    }
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       applySession(session, onAuthed);

@@ -30,6 +30,34 @@
           </button>
           <p class="login-error" id="login-error" role="alert"></p>
         </form>
+        <div class="login-actions">
+          <button class="login-link" type="button" id="login-recovery-toggle">
+            Olvide mi contrasena
+          </button>
+        </div>
+        <div class="login-recovery" id="login-recovery">
+          <p class="login-recovery-title">Recuperar contrasena</p>
+          <p class="login-recovery-note">
+            Ingresa tu email y RUT para validar el acceso.
+          </p>
+          <form class="login-form" id="recovery-form">
+            <div class="field">
+              <label for="recovery-email">Email</label>
+              <input id="recovery-email" name="recovery_email" type="email" required />
+            </div>
+            <div class="field">
+              <label for="recovery-rut">RUT</label>
+              <input id="recovery-rut" name="recovery_rut" placeholder="12.345.678-9" required />
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Enviar enlace</button>
+              <button class="btn btn-ghost" type="button" id="recovery-cancel">
+                Volver
+              </button>
+            </div>
+            <p class="login-recovery-status" id="recovery-status" role="status"></p>
+          </form>
+        </div>
         <p class="login-foot">
           El sistema detecta tu rol y abre el panel correspondiente.
         </p>

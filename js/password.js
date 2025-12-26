@@ -157,6 +157,55 @@
     return window.sessionStorage?.getItem("nolvax_invite_verified") === "1";
   }
 
+  function normalizeEmail(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  async function markPasswordCreated() {
+    if (!supabaseClient) {
+      return false;
+    }
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const email = normalizeEmail(sessionData?.session?.user?.email || "");
+    if (!email) {
+      return false;
+    }
+    const { data, error } = await supabaseClient
+      .from("nolvax_admin_state")
+      .select("companies, users")
+      .eq("id", "main")
+      .maybeSingle();
+    if (error || !data) {
+      return false;
+    }
+    const users = Array.isArray(data.users) ? data.users : [];
+    let changed = false;
+    users.forEach((user) => {
+      if (normalizeEmail(user.email) === email) {
+        user.passwordStatus = "created";
+        user.passwordUpdatedAt = new Date().toISOString();
+        if (!user.inviteStatus || user.inviteStatus === "sent") {
+          user.inviteStatus = "accepted";
+        }
+        changed = true;
+      }
+    });
+    if (!changed) {
+      return false;
+    }
+    const { error: upsertError } = await supabaseClient
+      .from("nolvax_admin_state")
+      .upsert(
+        {
+          id: "main",
+          companies: Array.isArray(data.companies) ? data.companies : [],
+          users,
+        },
+        { onConflict: "id" }
+      );
+    return !upsertError;
+  }
+
   async function checkSessionReady() {
     const { data } = await supabaseClient.auth.getSession();
     return Boolean(data?.session);
@@ -308,6 +357,8 @@
       }
       return;
     }
+
+    await markPasswordCreated();
 
     setSuccess("Contrasena actualizada. Redirigiendo al inicio de sesion...");
     if (form) {
