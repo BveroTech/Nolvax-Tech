@@ -205,9 +205,9 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   font-weight: 700;
   background: linear-gradient(140deg, var(--accent), var(--accent-3));
   color: #140d08;
@@ -220,11 +220,6 @@ body::before {
   object-fit: contain;
 }
 
-.login-head .brand-mark {
-  width: 84px;
-  height: 84px;
-  border-radius: 22px;
-}
 
 .brand-title {
   font-family: "Syne", sans-serif;
