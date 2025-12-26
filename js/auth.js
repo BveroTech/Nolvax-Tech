@@ -67,6 +67,9 @@
 
     const role = user?.app_metadata?.role || user?.user_metadata?.role;
     const normalizedRole = role ? String(role).toLowerCase() : "";
+    const userType = String(
+      user?.app_metadata?.user_type || user?.user_metadata?.user_type || ""
+    ).toLowerCase();
     const email = N.utils.normalizeEmail(user?.email);
 
     if (email === N.utils.normalizeEmail(N.config.MEGA_SUPERUSER_EMAIL)) {
@@ -84,12 +87,21 @@
       }
     }
 
+    if (userType && userType === String(N.config.CLIENT_USER_TYPE || "cliente").toLowerCase()) {
+      return "client";
+    }
+
     if (normalizedRole) {
       const sellerRoles = Array.isArray(N.config.SELLER_ROLES)
         ? N.config.SELLER_ROLES
         : [N.config.SELLER_ROLE || "seller"];
       if (sellerRoles.map((value) => String(value).toLowerCase()).includes(normalizedRole)) {
         return "seller";
+      }
+
+      const staffRoles = Array.isArray(N.config.STAFF_ROLES) ? N.config.STAFF_ROLES : [];
+      if (staffRoles.map((value) => String(value).toLowerCase()).includes(normalizedRole)) {
+        return "super";
       }
     }
 
@@ -105,6 +117,9 @@
     }
     if (accessLevel === "seller") {
       return N.config.SELLER_LABEL || "Vendedor";
+    }
+    if (accessLevel === "client") {
+      return "Cliente";
     }
     return "-";
   }
@@ -148,6 +163,8 @@
       const errorMessage =
         accessMode === "seller"
           ? "Acceso denegado: usuario sin permisos de vendedor."
+          : accessLevel === "client"
+            ? "Cuenta cliente: usa el portal de tu empresa."
           : isGeneralLogin
             ? "Acceso denegado: usuario sin permisos para esta cuenta."
           : "Acceso denegado: usuario sin permisos de superusuario.";
@@ -211,7 +228,7 @@
   }
 
   async function init(onAuthed) {
-    if (!loginForm || !logoutBtn) {
+    if (!loginForm) {
       return;
     }
     if (!supabaseClient) {
@@ -219,11 +236,26 @@
       return;
     }
 
+    if (loginEmail) {
+      const url = new URL(window.location.href);
+      const emailParam = url.searchParams.get("email");
+      if (emailParam && !loginEmail.value) {
+        loginEmail.value = emailParam;
+      }
+      if (url.searchParams.has("password")) {
+        url.searchParams.delete("password");
+        window.history.replaceState({}, document.title, url.toString());
+        setLoginError("Por seguridad, no uses la contrasena en la URL.");
+      }
+    }
+
     loginForm.addEventListener("submit", (event) => handleLoginSubmit(event, onAuthed));
-    logoutBtn.addEventListener("click", async () => {
-      await supabaseClient.auth.signOut();
-      setAuthView(null);
-    });
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        setAuthView(null);
+      });
+    }
 
     const { data, error } = await supabaseClient.auth.getSession();
     if (error) {

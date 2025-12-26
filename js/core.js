@@ -7,6 +7,8 @@
     SUPERUSER_EMAILS: [],
     SELLER_ROLES: ["seller", "vendedor"],
     SELLER_LABEL: "Vendedor",
+    STAFF_ROLES: ["admin", "manager", "cashier", "support"],
+    CLIENT_USER_TYPE: "cliente",
     OWNER_ROLE_VALUE: "owner",
     data: {
       STATE_TABLE: "nolvax_admin_state",
