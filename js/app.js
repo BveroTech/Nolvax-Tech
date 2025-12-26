@@ -14,8 +14,6 @@
 
     if (N.data?.bootstrapState) {
       await N.data.bootstrapState();
-    } else if (N.data?.seedData) {
-      N.data.seedData();
     }
     if (N.companies?.renderSelects) {
       N.companies.renderSelects();

@@ -14,6 +14,7 @@
       STATE_TABLE: "nolvax_admin_state",
       STATE_ROW_ID: "main",
       REMOTE_ENABLED: true,
+      REALTIME_ENABLED: true,
     },
   };
 
@@ -29,8 +30,6 @@
     companies: [],
     users: [],
   };
-
-  const STORAGE_KEY = "nolvax_admin_state_v1";
 
   function normalizeEmail(value) {
     return (value || "").trim().toLowerCase();
@@ -153,48 +152,40 @@
     getStatusLabel,
   };
 
-  function loadLocalState() {
-    if (!window.localStorage) {
-      return false;
-    }
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return false;
-      }
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") {
-        return false;
-      }
-      if (!Array.isArray(parsed.companies) || !Array.isArray(parsed.users)) {
-        return false;
-      }
-      N.state.companies = parsed.companies;
-      N.state.users = parsed.users;
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  function saveLocalState() {
-    if (!window.localStorage) {
-      return false;
-    }
-    try {
-      const payload = {
-        companies: N.state.companies,
-        users: N.state.users,
-      };
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
   function getSupabaseClient() {
     return window.supabaseClient || null;
+  }
+
+  function applyRemoteState(data) {
+    N.state.companies = data.companies || [];
+    N.state.users = data.users || [];
+  }
+
+  function notifyStateUpdate() {
+    if (N.companies?.renderSelects) {
+      N.companies.renderSelects();
+    }
+    if (N.companies?.renderLists) {
+      N.companies.renderLists();
+    }
+    if (N.users?.renderLists) {
+      N.users.renderLists();
+    }
+    if (N.staff?.renderAll) {
+      N.staff.renderAll();
+    }
+    if (N.vendedor?.renderAll) {
+      N.vendedor.renderAll();
+    }
+    if (N.ui?.updateStats) {
+      N.ui.updateStats();
+    }
+    if (N.ui?.updateModuleSummary) {
+      N.ui.updateModuleSummary();
+    }
+    if (N.ui?.updateKillSwitch) {
+      N.ui.updateKillSwitch();
+    }
   }
 
   async function loadRemoteState() {
@@ -210,14 +201,28 @@
       .select("companies, users")
       .eq("id", N.config.data.STATE_ROW_ID)
       .maybeSingle();
-    if (error || !data) {
+    if (error) {
       return false;
+    }
+    if (!data) {
+      const payload = {
+        id: N.config.data.STATE_ROW_ID,
+        companies: [],
+        users: [],
+      };
+      const { error: upsertError } = await client
+        .from(N.config.data.STATE_TABLE)
+        .upsert(payload, { onConflict: "id" });
+      if (upsertError) {
+        return false;
+      }
+      applyRemoteState(payload);
+      return true;
     }
     if (!Array.isArray(data.companies) || !Array.isArray(data.users)) {
       return false;
     }
-    N.state.companies = data.companies;
-    N.state.users = data.users;
+    applyRemoteState(data);
     return true;
   }
 
@@ -240,119 +245,60 @@
     return !error;
   }
 
+  let stateChannel = null;
+
+  function subscribeRemoteState() {
+    if (!N.config.data.REMOTE_ENABLED || !N.config.data.REALTIME_ENABLED) {
+      return;
+    }
+    const client = getSupabaseClient();
+    if (!client) {
+      return;
+    }
+    if (stateChannel) {
+      client.removeChannel(stateChannel);
+      stateChannel = null;
+    }
+    stateChannel = client
+      .channel("nolvax_admin_state")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: N.config.data.STATE_TABLE,
+          filter: `id=eq.${N.config.data.STATE_ROW_ID}`,
+        },
+        (payload) => {
+          const record = payload?.new;
+          if (!record) {
+            return;
+          }
+          if (!Array.isArray(record.companies) || !Array.isArray(record.users)) {
+            return;
+          }
+          applyRemoteState(record);
+          notifyStateUpdate();
+        }
+      )
+      .subscribe();
+  }
+
   async function bootstrapState() {
     const remoteOk = await loadRemoteState();
-    if (remoteOk) {
-      saveLocalState();
-      return "remote";
-    }
-    if (loadLocalState()) {
-      await saveRemoteState();
-      return "local";
-    }
-    seedData();
-    return "seed";
+    subscribeRemoteState();
+    return remoteOk ? "remote" : "error";
   }
 
   async function saveState() {
     const remoteOk = await saveRemoteState();
-    saveLocalState();
     return remoteOk;
   }
 
-  function seedData() {
-    if (loadLocalState()) {
-      return;
-    }
-
-    N.state.companies = [
-      {
-        id: "cmp_001",
-        name: "La Esquina",
-        plan: "Pro",
-        status: "active",
-        billing: "facturas@laesquina.cl",
-      },
-      {
-        id: "cmp_002",
-        name: "Norte Market",
-        plan: "Base",
-        status: "past_due",
-        billing: "pagos@nortemarket.com",
-      },
-      {
-        id: "cmp_003",
-        name: "Plaza Uno",
-        plan: "Plus",
-        status: "active",
-        billing: "admin@plazauno.com",
-      },
-    ];
-
-    N.state.users = [
-      {
-        id: "usr_001",
-        firstName: "Camila",
-        secondName: "Paz",
-        lastName1: "Rios",
-        lastName2: "Vega",
-        email: "camila@laesquina.cl",
-        role: "owner",
-        company: "La Esquina",
-        userType: "cliente",
-        phone: "+56 9 2345 6789",
-        status: "active",
-      },
-      {
-        id: "usr_002",
-        firstName: "Mario",
-        secondName: "",
-        lastName1: "Silva",
-        lastName2: "Rojas",
-        email: "mario@nortemarket.com",
-        role: "manager",
-        company: "Norte Market",
-        userType: "cliente",
-        phone: "+56 9 8765 4321",
-        status: "active",
-      },
-      {
-        id: "usr_003",
-        firstName: "Lucia",
-        secondName: "Isabel",
-        lastName1: "Vega",
-        lastName2: "Torres",
-        email: "lucia@plazauno.com",
-        role: "admin",
-        company: "Plaza Uno",
-        userType: "cliente",
-        phone: "+56 9 1122 3344",
-        status: "active",
-      },
-      {
-        id: "usr_004",
-        firstName: "Diego",
-        secondName: "A.",
-        lastName1: "Mendez",
-        lastName2: "Lopez",
-        email: "diego@nolvax.com",
-        role: "support",
-        company: "Nolvax",
-        userType: "admin",
-        phone: "+56 9 5566 7788",
-        status: "active",
-      },
-    ];
-
-    saveLocalState();
-  }
-
   N.data = {
-    loadLocalState,
     loadRemoteState,
-    saveLocalState,
     saveState,
     bootstrapState,
-    seedData,
+    subscribeRemoteState,
   };
 })();
