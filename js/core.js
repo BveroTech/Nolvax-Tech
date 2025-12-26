@@ -15,6 +15,8 @@
       STATE_ROW_ID: "main",
       REMOTE_ENABLED: true,
       REALTIME_ENABLED: true,
+      USE_EDGE_STATE: true,
+      POLL_INTERVAL_MS: 15000,
     },
   };
 
@@ -181,11 +183,53 @@
     return window.supabaseClient || null;
   }
 
+  async function invokeStateFunction(action, payload = {}) {
+    const client = getSupabaseClient();
+    if (!client) {
+      return { ok: false, error: "Cliente Supabase no disponible." };
+    }
+    const { data, error } = await client.functions.invoke("admin-state", {
+      body: { action, ...payload },
+    });
+    if (error) {
+      return { ok: false, error: error.message || "Fallo la funcion admin-state." };
+    }
+    if (!data) {
+      return { ok: false, error: "Respuesta vacia del servidor." };
+    }
+    if (data.error) {
+      return { ok: false, error: data.error };
+    }
+    return { ok: true, data };
+  }
+
   function applyRemoteState(data) {
     const companies = Array.isArray(data.companies) ? data.companies : [];
     const users = Array.isArray(data.users) ? data.users : [];
     N.state.companies = companies;
     N.state.users = users.map((user) => normalizeUserRecord(user));
+  }
+
+  async function loadRemoteStateViaFunction() {
+    const result = await invokeStateFunction("get");
+    if (!result.ok) {
+      return false;
+    }
+    const payload = result.data?.data || result.data;
+    if (!payload || !Array.isArray(payload.companies) || !Array.isArray(payload.users)) {
+      return false;
+    }
+    applyRemoteState(payload);
+    return true;
+  }
+
+  async function saveRemoteStateViaFunction() {
+    const payload = {
+      companies: N.state.companies,
+      users: N.state.users.map((user) => normalizeUserRecord(user)),
+    };
+    const result = await invokeStateFunction("save", payload);
+    return Boolean(result.ok);
   }
 
   function notifyStateUpdate() {
@@ -218,6 +262,12 @@
   async function loadRemoteState() {
     if (!N.config.data.REMOTE_ENABLED) {
       return false;
+    }
+    if (N.config.data.USE_EDGE_STATE) {
+      const ok = await loadRemoteStateViaFunction();
+      if (ok) {
+        return true;
+      }
     }
     const client = getSupabaseClient();
     if (!client) {
@@ -257,6 +307,12 @@
     if (!N.config.data.REMOTE_ENABLED) {
       return false;
     }
+    if (N.config.data.USE_EDGE_STATE) {
+      const ok = await saveRemoteStateViaFunction();
+      if (ok) {
+        return true;
+      }
+    }
     const client = getSupabaseClient();
     if (!client) {
       return false;
@@ -273,6 +329,7 @@
   }
 
   let stateChannel = null;
+  let statePoller = null;
 
   function subscribeRemoteState() {
     if (!N.config.data.REMOTE_ENABLED || !N.config.data.REALTIME_ENABLED) {
@@ -311,9 +368,32 @@
       .subscribe();
   }
 
+  function startStatePolling() {
+    if (!N.config.data.REMOTE_ENABLED || !N.config.data.POLL_INTERVAL_MS) {
+      return;
+    }
+    if (statePoller) {
+      clearInterval(statePoller);
+      statePoller = null;
+    }
+    let busy = false;
+    statePoller = setInterval(async () => {
+      if (busy) {
+        return;
+      }
+      busy = true;
+      const ok = await loadRemoteState();
+      if (ok) {
+        notifyStateUpdate();
+      }
+      busy = false;
+    }, N.config.data.POLL_INTERVAL_MS);
+  }
+
   async function bootstrapState() {
     const remoteOk = await loadRemoteState();
     subscribeRemoteState();
+    startStatePolling();
     return remoteOk ? "remote" : "error";
   }
 

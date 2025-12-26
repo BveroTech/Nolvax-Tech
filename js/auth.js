@@ -201,16 +201,29 @@
       recoveryRut.value = rut;
     }
 
-    const { data, error } = await supabaseClient
-      .from(N.config.data.STATE_TABLE)
-      .select("users")
-      .eq("id", N.config.data.STATE_ROW_ID)
-      .maybeSingle();
-    if (error || !data?.users) {
-      setRecoveryStatus("No se pudo validar la cuenta. Intenta nuevamente.", "error");
-      return;
+    let users = [];
+    const { data: fnData, error: fnError } = await supabaseClient.functions.invoke(
+      "admin-state",
+      {
+        body: { action: "get" },
+      }
+    );
+    if (!fnError && fnData?.data?.users) {
+      users = fnData.data.users;
+    } else {
+      const { data, error } = await supabaseClient
+        .from(N.config.data.STATE_TABLE)
+        .select("users")
+        .eq("id", N.config.data.STATE_ROW_ID)
+        .maybeSingle();
+      if (error || !data?.users) {
+        setRecoveryStatus("No se pudo validar la cuenta. Intenta nuevamente.", "error");
+        return;
+      }
+      users = data.users;
     }
-    const match = data.users.find(
+
+    const match = users.find(
       (user) =>
         N.utils.normalizeEmail(user.email) === N.utils.normalizeEmail(email) &&
         N.utils.formatRutInput(user.rut || "") === rut

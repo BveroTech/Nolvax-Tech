@@ -170,15 +170,27 @@
     if (!email) {
       return false;
     }
-    const { data, error } = await supabaseClient
-      .from("nolvax_admin_state")
-      .select("companies, users")
-      .eq("id", "main")
-      .maybeSingle();
-    if (error || !data) {
-      return false;
+
+    let state = null;
+    const { data: fnData, error: fnError } = await supabaseClient.functions.invoke(
+      "admin-state",
+      { body: { action: "get" } }
+    );
+    if (!fnError && fnData?.data) {
+      state = fnData.data;
+    } else {
+      const { data, error } = await supabaseClient
+        .from("nolvax_admin_state")
+        .select("companies, users")
+        .eq("id", "main")
+        .maybeSingle();
+      if (error || !data) {
+        return false;
+      }
+      state = data;
     }
-    const users = Array.isArray(data.users) ? data.users : [];
+
+    const users = Array.isArray(state.users) ? state.users : [];
     let changed = false;
     users.forEach((user) => {
       if (normalizeEmail(user.email) === email) {
@@ -193,16 +205,21 @@
     if (!changed) {
       return false;
     }
+
+    const payload = {
+      companies: Array.isArray(state.companies) ? state.companies : [],
+      users,
+    };
+    const { error: saveError } = await supabaseClient.functions.invoke("admin-state", {
+      body: { action: "save", ...payload },
+    });
+    if (!saveError) {
+      return true;
+    }
+
     const { error: upsertError } = await supabaseClient
       .from("nolvax_admin_state")
-      .upsert(
-        {
-          id: "main",
-          companies: Array.isArray(data.companies) ? data.companies : [],
-          users,
-        },
-        { onConflict: "id" }
-      );
+      .upsert({ id: "main", ...payload }, { onConflict: "id" });
     return !upsertError;
   }
 
