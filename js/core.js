@@ -125,13 +125,37 @@
   }
 
   function buildUserDisplayName(user) {
-    const firstName = user.firstName || user.name || "";
-    const secondName = user.secondName || "";
-    const lastName1 = user.lastName1 || user.lastName || "";
-    const lastName2 = user.lastName2 || "";
-    const names = [firstName, secondName].filter(Boolean).join(" ").trim();
-    const lastNames = [lastName1, lastName2].filter(Boolean).join(" ").trim();
-    return [names, lastNames].filter(Boolean).join(" ").trim() || "Usuario";
+    const names = String(user.names || user.name || "").trim();
+    const lastnames = String(user.lastnames || user.lastName || "").trim();
+    if (names || lastnames) {
+      return [names, lastnames].filter(Boolean).join(" ").trim();
+    }
+    const legacyNames = [user.firstName, user.secondName].filter(Boolean).join(" ").trim();
+    const legacyLastnames = [user.lastName1, user.lastName2]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    return [legacyNames, legacyLastnames].filter(Boolean).join(" ").trim() || "Usuario";
+  }
+
+  function normalizeUserRecord(user) {
+    if (!user || typeof user !== "object") {
+      return user;
+    }
+    const legacyNames = [user.firstName, user.secondName].filter(Boolean).join(" ").trim();
+    const legacyLastnames = [user.lastName1, user.lastName2].filter(Boolean).join(" ").trim();
+    const names = String(user.names || user.name || legacyNames || "").trim() || "Usuario";
+    const lastnames = String(user.lastnames || user.lastName || legacyLastnames || "").trim();
+
+    user.names = names;
+    user.lastnames = lastnames;
+    delete user.firstName;
+    delete user.secondName;
+    delete user.lastName1;
+    delete user.lastName2;
+    delete user.name;
+    delete user.lastName;
+    return user;
   }
 
   function getStatusLabel(status) {
@@ -149,6 +173,7 @@
     formatRutInput,
     formatRoleLabel,
     buildUserDisplayName,
+    normalizeUserRecord,
     getStatusLabel,
   };
 
@@ -157,8 +182,10 @@
   }
 
   function applyRemoteState(data) {
-    N.state.companies = data.companies || [];
-    N.state.users = data.users || [];
+    const companies = Array.isArray(data.companies) ? data.companies : [];
+    const users = Array.isArray(data.users) ? data.users : [];
+    N.state.companies = companies;
+    N.state.users = users.map((user) => normalizeUserRecord(user));
   }
 
   function notifyStateUpdate() {
@@ -237,7 +264,7 @@
     const payload = {
       id: N.config.data.STATE_ROW_ID,
       companies: N.state.companies,
-      users: N.state.users,
+      users: N.state.users.map((user) => normalizeUserRecord(user)),
     };
     const { error } = await client
       .from(N.config.data.STATE_TABLE)

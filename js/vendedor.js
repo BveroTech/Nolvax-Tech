@@ -97,12 +97,8 @@
 
     return {
       id: `usr_${Date.now()}`,
-      name: names || "Cliente",
-      firstName,
-      secondName,
-      lastName1,
-      lastName2,
-      lastName: lastNames,
+      names: names || "Cliente",
+      lastnames: lastNames,
       email,
       role: N.config.OWNER_ROLE_VALUE,
       company,
@@ -135,6 +131,9 @@
     } else {
       user = data;
       N.state.users.unshift(user);
+    }
+    if (N.utils?.normalizeUserRecord) {
+      N.utils.normalizeUserRecord(user);
     }
     return user;
   }

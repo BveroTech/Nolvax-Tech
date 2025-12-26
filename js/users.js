@@ -154,12 +154,8 @@
     const rut = N.utils.formatRutInput(formData.get("rut"));
 
     return {
-      name: names || "Usuario",
-      firstName,
-      secondName,
-      lastName1,
-      lastName2,
-      lastName: lastNames,
+      names: names || "Usuario",
+      lastnames: lastNames,
       email,
       role,
       companyId: companyId || "",
@@ -188,6 +184,9 @@
         ...data,
       };
       N.state.users.unshift(user);
+    }
+    if (N.utils?.normalizeUserRecord) {
+      N.utils.normalizeUserRecord(user);
     }
 
     if (inviteStatus) {
@@ -225,10 +224,8 @@
       email: user.email,
       redirectTo: getInviteRedirectUrl(),
       data: {
-        first_name: user.firstName,
-        second_name: user.secondName,
-        last_name: user.lastName1,
-        last_name2: user.lastName2,
+        names: user.names,
+        lastnames: user.lastnames,
         user_type: user.userType,
         role: user.role,
         company_id: user.companyId || "",
