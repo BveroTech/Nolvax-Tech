@@ -157,32 +157,45 @@
     return window.sessionStorage?.getItem("nolvax_invite_verified") === "1";
   }
 
+  async function checkSessionReady() {
+    const { data } = await supabaseClient.auth.getSession();
+    return Boolean(data?.session);
+  }
+
   async function verifyWithToken(type, tokenHash, token) {
+    if (!type) {
+      return { ok: false, data: null };
+    }
     if (tokenHash) {
-      const { error } = await supabaseClient.auth.verifyOtp({
+      const { data, error } = await supabaseClient.auth.verifyOtp({
         type,
         token_hash: tokenHash,
       });
       if (!error) {
-        return true;
+        return { ok: true, data };
       }
     }
     if (token) {
-      const { error } = await supabaseClient.auth.verifyOtp({
+      const { data, error } = await supabaseClient.auth.verifyOtp({
         type,
         token,
       });
       if (!error) {
-        return true;
+        return { ok: true, data };
       }
     }
-    return false;
+    return { ok: false, data: null };
   }
 
   async function ensureSession() {
     if (!supabaseClient) {
       setError("No se encontro la conexion a Supabase.");
       return false;
+    }
+
+    if (await checkSessionReady()) {
+      markInviteVerified();
+      return true;
     }
 
     const url = new URL(window.location.href);
@@ -193,16 +206,25 @@
       hashParams.token_hash ||
       url.searchParams.get("token");
     const token = url.searchParams.get("token") || hashParams.token;
-    const type = url.searchParams.get("type") || hashParams.type || "invite";
+    const explicitType = url.searchParams.get("type") || hashParams.type;
+    const candidateTypes = explicitType ? [explicitType] : ["recovery", "invite"];
 
     if (code) {
-      const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
-      if (error) {
-        // Continua con otros metodos de verificacion.
+      const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
+      if (!error) {
+        if (data?.session?.access_token && data?.session?.refresh_token) {
+          await supabaseClient.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+        }
+        if (await checkSessionReady()) {
+          markInviteVerified();
+          clearUrl();
+          return true;
+        }
       } else {
-        markInviteVerified();
-        clearUrl();
-        return true;
+        // Continua con otros metodos de verificacion.
       }
     }
 
@@ -211,7 +233,7 @@
         access_token: hashParams.access_token,
         refresh_token: hashParams.refresh_token,
       });
-      if (!error) {
+      if (!error && (await checkSessionReady())) {
         markInviteVerified();
         clearUrl();
         return true;
@@ -219,17 +241,26 @@
     }
 
     if (tokenHash || token) {
-      const ok = await verifyWithToken(type, tokenHash, token);
-      if (ok) {
-        markInviteVerified();
-        clearUrl();
-        return true;
+      for (const type of candidateTypes) {
+        const result = await verifyWithToken(type, tokenHash, token);
+        if (result.ok) {
+          if (result.data?.session?.access_token && result.data?.session?.refresh_token) {
+            await supabaseClient.auth.setSession({
+              access_token: result.data.session.access_token,
+              refresh_token: result.data.session.refresh_token,
+            });
+          }
+          if (await checkSessionReady()) {
+            markInviteVerified();
+            clearUrl();
+            return true;
+          }
+        }
       }
     }
 
     if (hasInviteMarker()) {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data?.session) {
+      if (await checkSessionReady()) {
         return true;
       }
     }
