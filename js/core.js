@@ -292,6 +292,48 @@
     }
   }
 
+  async function maybeImportLegacyState() {
+    const legacyKey = "nolvax_admin_state_v1";
+    let legacyRaw = "";
+    try {
+      legacyRaw = window.localStorage?.getItem(legacyKey) || "";
+    } catch (_error) {
+      legacyRaw = "";
+    }
+    if (!legacyRaw) {
+      return false;
+    }
+
+    let legacy = null;
+    try {
+      legacy = JSON.parse(legacyRaw);
+    } catch (_error) {
+      legacy = null;
+    }
+    if (!legacy || !Array.isArray(legacy.users) || !Array.isArray(legacy.companies)) {
+      return false;
+    }
+
+    const shouldImport = window.confirm(
+      "Se encontro un estado local anterior. Quieres importarlo a la nube?"
+    );
+    if (!shouldImport) {
+      return false;
+    }
+
+    applyRemoteState(legacy);
+    const saved = await saveRemoteState();
+    if (saved) {
+      try {
+        window.localStorage?.removeItem(legacyKey);
+      } catch (_error) {
+        // ignore
+      }
+      notifyStateUpdate();
+    }
+    return saved;
+  }
+
   async function loadRemoteState() {
     if (!N.config.data.REMOTE_ENABLED) {
       return false;
@@ -435,6 +477,9 @@
 
   async function bootstrapState() {
     const remoteOk = await loadRemoteState();
+    if (remoteOk && !N.state.users.length && !N.state.companies.length) {
+      await maybeImportLegacyState();
+    }
     subscribeRemoteState();
     startStatePolling();
     return remoteOk ? "remote" : "error";
