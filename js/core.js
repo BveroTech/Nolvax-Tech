@@ -183,13 +183,46 @@
     return window.supabaseClient || null;
   }
 
+  let lastSessionWarningAt = 0;
+
+  async function getActiveSession() {
+    const client = getSupabaseClient();
+    if (!client?.auth?.getSession) {
+      return null;
+    }
+    const { data, error } = await client.auth.getSession();
+    if (error || !data?.session?.access_token) {
+      return null;
+    }
+    return data.session;
+  }
+
+  function handleMissingSession() {
+    const now = Date.now();
+    if (now - lastSessionWarningAt < 5000) {
+      return;
+    }
+    lastSessionWarningAt = now;
+    if (N.auth?.showLogin) {
+      N.auth.showLogin("Sesion expirada. Inicia sesion nuevamente.");
+    }
+  }
+
   async function invokeStateFunction(action, payload = {}) {
     const client = getSupabaseClient();
     if (!client) {
       return { ok: false, error: "Cliente Supabase no disponible." };
     }
+    const session = await getActiveSession();
+    if (!session) {
+      handleMissingSession();
+      return { ok: false, error: "Sesion no activa." };
+    }
     const { data, error } = await client.functions.invoke("admin-state", {
       body: { action, ...payload },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
     });
     if (error) {
       return { ok: false, error: error.message || "Fallo la funcion admin-state." };
@@ -263,6 +296,11 @@
     if (!N.config.data.REMOTE_ENABLED) {
       return false;
     }
+    const session = await getActiveSession();
+    if (!session) {
+      handleMissingSession();
+      return false;
+    }
     if (N.config.data.USE_EDGE_STATE) {
       const ok = await loadRemoteStateViaFunction();
       if (ok) {
@@ -305,6 +343,11 @@
 
   async function saveRemoteState() {
     if (!N.config.data.REMOTE_ENABLED) {
+      return false;
+    }
+    const session = await getActiveSession();
+    if (!session) {
+      handleMissingSession();
       return false;
     }
     if (N.config.data.USE_EDGE_STATE) {

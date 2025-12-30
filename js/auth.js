@@ -406,5 +406,11 @@
 
   N.auth = {
     init,
+    showLogin(message) {
+      if (message) {
+        setLoginError(message);
+      }
+      setAuthView(null);
+    },
   };
 })();
