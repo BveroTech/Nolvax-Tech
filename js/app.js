@@ -45,6 +45,9 @@
     if (N.ui?.updateKillSwitch) {
       N.ui.updateKillSwitch();
     }
+    if (N.audit?.render) {
+      N.audit.render();
+    }
 
     if (N.companies?.init) {
       N.companies.init();
@@ -57,6 +60,18 @@
     }
     if (N.vendedor?.init) {
       N.vendedor.init();
+    }
+    if (N.modules?.init) {
+      N.modules.init();
+    }
+    if (N.subscription?.init) {
+      N.subscription.init();
+    }
+    if (N.support?.init) {
+      N.support.init();
+    }
+    if (N.analytics?.init) {
+      N.analytics.init();
     }
     if (N.ui?.init) {
       N.ui.init();

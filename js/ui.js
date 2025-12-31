@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const N = window.Nolvax;
   if (!N) {
     return;

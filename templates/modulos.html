@@ -50,6 +50,7 @@
           <a class="nav-link" href="usuarios.html">Usuarios</a>
           <a class="nav-link" href="suscripcion.html">Suscripcion</a>
           <a class="nav-link active" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="analitica.html">Analitica</a>
           <a class="nav-link" href="auditoria.html">Auditoria</a>
           <a class="nav-link" href="soporte.html">Soporte</a>
         </nav>
@@ -86,6 +87,12 @@
                 <span class="chip chip-warn">
                   Desactivados: <strong id="module-off-count">0</strong>
                 </span>
+              </div>
+              <div class="form-grid compact">
+                <div class="field span-2">
+                  <label for="module-company">Empresa</label>
+                  <select id="module-company"></select>
+                </div>
               </div>
               <div class="module-grid">
                 <div class="module-card">
@@ -150,8 +157,10 @@
                 </div>
               </div>
               <div class="form-actions">
-                <button class="btn btn-primary" type="button">Aplicar a empresa</button>
-                <button class="btn btn-ghost" type="button">Restaurar</button>
+                <button class="btn btn-primary" type="button" id="module-apply">
+                  Aplicar a empresa
+                </button>
+                <button class="btn btn-ghost" type="button" id="module-reset">Restaurar</button>
               </div>
             </article>
           </div>
@@ -165,6 +174,7 @@
     <script src="../js/ui.js"></script>
     <script src="../js/companies.js"></script>
     <script src="../js/users.js"></script>
+    <script src="../js/modules.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/app.js"></script>
   </body>

@@ -50,6 +50,7 @@
           <a class="nav-link" href="usuarios.html">Usuarios</a>
           <a class="nav-link" href="suscripcion.html">Suscripcion</a>
           <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="analitica.html">Analitica</a>
           <a class="nav-link" href="auditoria.html">Auditoria</a>
           <a class="nav-link" href="soporte.html">Soporte</a>
         </nav>
@@ -92,6 +93,10 @@
                     <input id="company-name" name="company_name" required />
                   </div>
                   <div class="field">
+                    <label for="company-store-id">Store ID</label>
+                    <input id="company-store-id" name="store_id" placeholder="store_001" required />
+                  </div>
+                  <div class="field">
                     <label for="company-legal">Razon social</label>
                     <input id="company-legal" name="legal_name" />
                   </div>
@@ -132,12 +137,13 @@
                     <label for="company-notes">Notas internas</label>
                     <textarea id="company-notes" name="notes" rows="3"></textarea>
                   </div>
-                  <div class="form-actions span-2">
-                    <button class="btn btn-primary" type="submit">Crear empresa</button>
-                    <button class="btn btn-ghost" type="reset">Limpiar</button>
-                  </div>
-                </form>
-              </article>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="submit">Crear empresa</button>
+                  <button class="btn btn-ghost" type="reset">Limpiar</button>
+                </div>
+                <p class="form-status span-2" id="company-form-status" role="status"></p>
+              </form>
+            </article>
             </div>
 
             <div class="column">

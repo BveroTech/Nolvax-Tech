@@ -50,6 +50,7 @@
           <a class="nav-link" href="usuarios.html">Usuarios</a>
           <a class="nav-link" href="suscripcion.html">Suscripcion</a>
           <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link" href="analitica.html">Analitica</a>
           <a class="nav-link" href="auditoria.html">Auditoria</a>
           <a class="nav-link active" href="soporte.html">Soporte</a>
         </nav>
@@ -100,6 +101,131 @@
                 </div>
               </div>
             </article>
+
+            <article class="panel" style="--i: 2">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Tickets</p>
+                  <h2>Solicitudes activas</h2>
+                </div>
+                <span class="chip chip-warn">SLA en seguimiento</span>
+              </div>
+              <div class="filter-grid">
+                <label class="search">
+                  <span>Buscar</span>
+                  <input id="support-filter-search" type="search" placeholder="Cliente, asunto o id" />
+                </label>
+                <div class="field">
+                  <label for="support-filter-status">Estado</label>
+                  <select id="support-filter-status">
+                    <option value="all">Todos</option>
+                    <option value="abierto">Abiertos</option>
+                    <option value="en-progreso">En progreso</option>
+                    <option value="pausado">Pausados</option>
+                    <option value="cerrado">Cerrados</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="support-filter-priority">Prioridad</label>
+                  <select id="support-filter-priority">
+                    <option value="all">Todas</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baja">Baja</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>&nbsp;</label>
+                  <button class="btn btn-ghost" type="button" id="support-filter-clear">
+                    Limpiar filtros
+                  </button>
+                </div>
+              </div>
+              <ul class="list" id="support-ticket-list"></ul>
+            </article>
+
+            <article class="panel" style="--i: 3">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Nuevo ticket</p>
+                  <h2>Crear solicitud de soporte</h2>
+                </div>
+                <span class="chip chip-soft">Soporte interno</span>
+              </div>
+              <form class="form-grid" id="support-ticket-form">
+                <div class="field span-2">
+                  <label for="support-company">Empresa</label>
+                  <select id="support-company" name="company_id"></select>
+                </div>
+                <div class="field span-2">
+                  <label for="support-subject">Asunto</label>
+                  <input id="support-subject" name="subject" required />
+                </div>
+                <div class="field">
+                  <label for="support-priority">Prioridad</label>
+                  <select id="support-priority" name="priority">
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baja">Baja</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="support-assignee">Asignado a</label>
+                  <select id="support-assignee" name="assignee"></select>
+                </div>
+                <div class="field">
+                  <label for="support-sla">SLA (hrs)</label>
+                  <input id="support-sla" name="sla_hours" inputmode="numeric" placeholder="24" />
+                </div>
+                <div class="field span-2">
+                  <label for="support-notes-internal">Notas internas</label>
+                  <textarea id="support-notes-internal" name="notes_internal" rows="3"></textarea>
+                </div>
+                <div class="field span-2">
+                  <label for="support-notes-client">Notas visibles al cliente</label>
+                  <textarea id="support-notes-client" name="notes_client" rows="3"></textarea>
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="submit">Crear ticket</button>
+                </div>
+                <p class="form-status span-2" id="support-ticket-status" role="status"></p>
+              </form>
+            </article>
+
+            <article class="panel" style="--i: 4">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Salud del cliente</p>
+                  <h2>Riesgos operativos</h2>
+                </div>
+                <span class="chip chip-alert">Monitoreo</span>
+              </div>
+              <div class="table" id="support-health-list"></div>
+            </article>
+
+            <article class="panel" style="--i: 5">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Plantillas</p>
+                  <h2>Respuestas y protocolos</h2>
+                </div>
+                <span class="chip chip-soft">Reutilizable</span>
+              </div>
+              <form class="form-grid compact" id="support-template-form">
+                <div class="field span-2">
+                  <label for="support-template-title">Titulo</label>
+                  <input id="support-template-title" name="title" placeholder="Respuesta de emergencia" />
+                </div>
+                <div class="field span-2">
+                  <label for="support-template-body">Mensaje</label>
+                  <textarea id="support-template-body" name="body" rows="3"></textarea>
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-ghost" type="submit">Guardar plantilla</button>
+                </div>
+              </form>
+              <ul class="list" id="support-template-list"></ul>
+            </article>
           </div>
         </section>
       </main>
@@ -111,6 +237,7 @@
     <script src="../js/ui.js"></script>
     <script src="../js/companies.js"></script>
     <script src="../js/users.js"></script>
+    <script src="../js/support.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/app.js"></script>
   </body>

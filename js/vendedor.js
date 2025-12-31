@@ -39,6 +39,66 @@
     sellerStatus.classList.toggle("is-success", tone === "success");
   }
 
+  function findCompanyByName(name) {
+    const target = String(name || "").trim().toLowerCase();
+    if (!target) {
+      return null;
+    }
+    return N.state.companies.find(
+      (company) => String(company.name || "").trim().toLowerCase() === target
+    );
+  }
+
+  function ensureCompanyFromLead(name, plan, rut) {
+    const existing = findCompanyByName(name);
+    if (existing) {
+      return existing;
+    }
+    const storeId = `lead_${Date.now()}`;
+    const company = {
+      id: storeId,
+      storeId,
+      name: name || "Empresa sin nombre",
+      plan: plan || "Base",
+      status: "active",
+      taxId: rut || "",
+      createdAt: new Date().toISOString(),
+      modules: {
+        pos: true,
+        inventory: true,
+        loyalty: true,
+        sync: true,
+        hardware: true,
+        reports: true,
+      },
+      subscription: {
+        plan: plan || "Base",
+        status: "active",
+        renewAt: "",
+        killSwitch: false,
+      },
+      supportTickets: [],
+      health: {
+        syncStatus: "ok",
+        incidentCount: 0,
+        lastError: "",
+        riskLevel: "normal",
+        updatedAt: "",
+      },
+      products: [],
+      analytics: {
+        orders: 0,
+        trendNote: "",
+        updatedAt: "",
+      },
+    };
+    N.state.companies.unshift(company);
+    if (N.companies?.renderSelects) {
+      N.companies.renderSelects();
+    }
+    return company;
+  }
+
   function parsePercent(value) {
     const normalized = String(value || "").replace(/[^0-9.]/g, "");
     const parsed = Number(normalized);
@@ -86,7 +146,7 @@
     const email = String(formData.get("email") || "").trim();
     const phoneLocal = N.utils.formatChilePhoneInput(formData.get("phone"));
     const phone = phoneLocal ? `+56 ${phoneLocal}` : "";
-    const company = String(formData.get("company_name") || "").trim() || "Empresa sin nombre";
+    const companyName = String(formData.get("company_name") || "").trim() || "Empresa sin nombre";
     const plan = String(formData.get("plan") || "").trim() || "Base";
     const rut = N.utils.formatRutInput(formData.get("rut"));
     const commissionRate = parsePercent(formData.get("commission_rate"));
@@ -95,13 +155,16 @@
     const closeDate = String(formData.get("close_date") || "").trim();
     const notes = String(formData.get("notes") || "").trim();
 
+    const company = ensureCompanyFromLead(companyName, plan, rut);
+
     return {
       id: `usr_${Date.now()}`,
       names: names || "Cliente",
       lastnames: lastNames,
       email,
       role: N.config.OWNER_ROLE_VALUE,
-      company,
+      company: company.name,
+      companyId: company.id,
       userType: "cliente",
       phone,
       status: "active",
@@ -127,6 +190,11 @@
       (item) => N.utils.normalizeEmail(item.email) === targetEmail
     );
     if (user) {
+      const owner = user.salesOwner || "";
+      if (owner && owner !== getSellerId()) {
+        setStatus("Este cliente ya esta asignado a otro vendedor.", "error");
+        return null;
+      }
       Object.assign(user, data);
     } else {
       user = data;
@@ -384,6 +452,14 @@
       setStatus("Ingresa un email valido.", "error");
       return;
     }
+    N.audit?.log({
+      type: "sales",
+      title: "Cliente agregado por ventas",
+      detail: `Cliente ${user.email} registrado con empresa ${user.company}.`,
+      userId: user.id,
+      companyId: user.companyId || "",
+      actor: N.session?.user?.email || "",
+    });
     if (N.data?.saveState) {
       await N.data.saveState();
     }
@@ -417,6 +493,14 @@
       const currentIndex = stages.indexOf(user.salesStatus);
       const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % stages.length;
       user.salesStatus = stages[nextIndex];
+      N.audit?.log({
+        type: "sales",
+        title: "Etapa comercial actualizada",
+        detail: `Cliente ${user.company} -> ${getSalesStatusLabel(user.salesStatus)}.`,
+        userId: user.id,
+        companyId: user.companyId || "",
+        actor: N.session?.user?.email || "",
+      });
     }
     if (action === "delete") {
       const confirmDelete = window.confirm(
@@ -426,6 +510,14 @@
         return;
       }
       N.state.users = N.state.users.filter((item) => item.id !== user.id);
+      N.audit?.log({
+        type: "sales",
+        title: "Cliente eliminado",
+        detail: `Cliente ${user.email} eliminado del pipeline.`,
+        userId: user.id,
+        companyId: user.companyId || "",
+        actor: N.session?.user?.email || "",
+      });
     }
     if (N.data?.saveState) {
       await N.data.saveState();

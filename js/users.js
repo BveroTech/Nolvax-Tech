@@ -185,7 +185,7 @@
     const lastNames = [lastName1, lastName2].filter(Boolean).join(" ").trim();
     const phoneLocal = N.utils.formatChilePhoneInput(formData.get("phone"));
     const phone = phoneLocal ? `+56 ${phoneLocal}` : "";
-    const companyId = formData.get("company_id");
+    const companyId = userType === "admin" ? "" : formData.get("company_id");
     const company = N.state.companies.find((item) => item.id === companyId);
     const companyName = userType === "admin" ? "Nolvax" : company ? company.name : "Sin empresa";
     const email = String(formData.get("email") || "").trim();
@@ -252,6 +252,22 @@
     return "Invitar";
   }
 
+  function formatInviteStatus(status) {
+    if (status === "sent") {
+      return "Enviado";
+    }
+    if (status === "failed") {
+      return "Fallido";
+    }
+    if (status === "accepted") {
+      return "Aceptado";
+    }
+    if (status === "pending") {
+      return "Enviando";
+    }
+    return "No enviada";
+  }
+
   async function sendInvite(user) {
     const allowRecovery = user?.allowRecovery === true;
     if (!supabaseClient) {
@@ -271,6 +287,7 @@
         user_type: user.userType,
         role: user.role,
         company_id: user.companyId || "",
+        company: user.company || "",
         rut: user.rut || "",
       },
     };
@@ -380,6 +397,15 @@
 
     user.inviteStatus = result.ok ? "sent" : "failed";
     user.inviteUpdatedAt = new Date().toISOString();
+    if (result.ok) {
+      N.audit?.log({
+        type: "invite",
+        title: "Invitacion enviada",
+        detail: `Invitacion enviada a ${user.email}.`,
+        userId: user.id,
+        actor: N.session?.user?.email || "",
+      });
+    }
     if (N.data?.saveState) {
       await N.data.saveState();
     }
@@ -541,7 +567,7 @@
         metaStatus.textContent = `Estado: ${N.utils.getStatusLabel(user.status)}`;
         const metaInvite = document.createElement("p");
         metaInvite.className = "list-meta-line";
-        metaInvite.textContent = `Invitacion: ${user.inviteStatus || "no enviada"}`;
+        metaInvite.textContent = `Invitacion: ${formatInviteStatus(user.inviteStatus)}`;
         const metaPassword = document.createElement("p");
         metaPassword.className = "list-meta-line";
         metaPassword.textContent = `Contrasena: ${
@@ -628,6 +654,13 @@
     if (!user) {
       return;
     }
+    N.audit?.log({
+      type: "user",
+      title: "Usuario creado",
+      detail: `Usuario ${user.email} agregado.`,
+      userId: user.id,
+      actor: N.session?.user?.email || "",
+    });
     if (N.data?.saveState) {
       await N.data.saveState();
     }
@@ -673,6 +706,15 @@
       const result = await sendInvite({ ...user, allowRecovery: true });
       user.inviteStatus = result.ok ? "sent" : "failed";
       user.inviteUpdatedAt = new Date().toISOString();
+      if (result.ok) {
+        N.audit?.log({
+          type: "invite",
+          title: "Invitacion reenviada",
+          detail: `Invitacion reenviada a ${user.email}.`,
+          userId: user.id,
+          actor: N.session?.user?.email || "",
+        });
+      }
       if (N.data?.saveState) {
         await N.data.saveState();
       }
@@ -701,6 +743,13 @@
       if (N.utils.normalizeUserStatus(user.status) === "disabled") {
         user.status = "active";
         user.disabledUntil = "";
+        N.audit?.log({
+          type: "user",
+          title: "Usuario habilitado",
+          detail: `Se habilito a ${user.email}.`,
+          userId: user.id,
+          actor: N.session?.user?.email || "",
+        });
       } else {
         const until = window.prompt(
           "Inhabilitar hasta (YYYY-MM-DD) o dejar vacio para indefinido:",
@@ -708,6 +757,13 @@
         );
         user.status = "disabled";
         user.disabledUntil = (until || "").trim();
+        N.audit?.log({
+          type: "user",
+          title: "Usuario inhabilitado",
+          detail: `Se inhabilito a ${user.email}.`,
+          userId: user.id,
+          actor: N.session?.user?.email || "",
+        });
       }
     }
 
@@ -719,6 +775,13 @@
         return;
       }
       N.state.users = N.state.users.filter((item) => item.id !== user.id);
+      N.audit?.log({
+        type: "user",
+        title: "Usuario eliminado",
+        detail: `Se elimino a ${user.email}.`,
+        userId: user.id,
+        actor: N.session?.user?.email || "",
+      });
     }
 
     if (N.data?.saveState) {

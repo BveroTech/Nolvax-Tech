@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const N = (window.Nolvax = window.Nolvax || {});
 
   N.config = {
@@ -13,6 +13,8 @@
     data: {
       STATE_TABLE: "nolvax_admin_state",
       STATE_ROW_ID: "main",
+      META_COMPANY_ID: "__meta__",
+      META_COMPANY_TYPE: "meta",
       REMOTE_ENABLED: true,
       REALTIME_ENABLED: true,
       USE_EDGE_STATE: true,
@@ -28,9 +30,21 @@
     },
   };
 
+  // Default container for admin-only data (support templates, library, audit).
+  function createDefaultMetaState() {
+    return {
+      version: 1,
+      supportTemplates: [],
+      productLibrary: [],
+      productTemplates: [],
+      auditLog: [],
+    };
+  }
+
   N.state = {
     companies: [],
     users: [],
+    meta: createDefaultMetaState(),
   };
 
   function normalizeEmail(value) {
@@ -160,6 +174,43 @@
     return user;
   }
 
+  function extractMetaCompany(companies) {
+    const metaId = N.config.data.META_COMPANY_ID;
+    const metaType = N.config.data.META_COMPANY_TYPE;
+    const cleaned = [];
+    let meta = createDefaultMetaState();
+
+    companies.forEach((company) => {
+      if (!company || typeof company !== "object") {
+        return;
+      }
+      if (company.id === metaId && company.type === metaType) {
+        if (company.data && typeof company.data === "object") {
+          meta = { ...createDefaultMetaState(), ...company.data };
+        }
+        return;
+      }
+      cleaned.push(company);
+    });
+
+    return { companies: cleaned, meta };
+  }
+
+  function buildStatePayload() {
+    const metaId = N.config.data.META_COMPANY_ID;
+    const metaType = N.config.data.META_COMPANY_TYPE;
+    const metaCompany = {
+      id: metaId,
+      type: metaType,
+      data: N.state.meta || createDefaultMetaState(),
+      updatedAt: new Date().toISOString(),
+    };
+    return {
+      companies: [...N.state.companies, metaCompany],
+      users: N.state.users.map((user) => normalizeUserRecord(user)),
+    };
+  }
+
   function getStatusLabel(status) {
     return normalizeUserStatus(status) === "disabled" ? "Inhabilitado" : "Activo";
   }
@@ -177,6 +228,40 @@
     buildUserDisplayName,
     normalizeUserRecord,
     getStatusLabel,
+  };
+
+  // Central audit logger; feeds panel/auditoria timelines.
+  function logAuditEvent(entry) {
+    if (!entry || typeof entry !== "object") {
+      return;
+    }
+    const record = {
+      id: entry.id || `audit_${Date.now()}`,
+      type: entry.type || "general",
+      title: entry.title || "Evento",
+      detail: entry.detail || "",
+      companyId: entry.companyId || "",
+      userId: entry.userId || "",
+      actor: entry.actor || "",
+      createdAt: entry.createdAt || new Date().toISOString(),
+    };
+    if (!N.state.meta) {
+      N.state.meta = createDefaultMetaState();
+    }
+    if (!Array.isArray(N.state.meta.auditLog)) {
+      N.state.meta.auditLog = [];
+    }
+    N.state.meta.auditLog.unshift(record);
+    if (N.state.meta.auditLog.length > 200) {
+      N.state.meta.auditLog = N.state.meta.auditLog.slice(0, 200);
+    }
+    if (N.audit?.render) {
+      N.audit.render();
+    }
+  }
+
+  N.audit = {
+    log: logAuditEvent,
   };
 
   function getSupabaseClient() {
@@ -208,6 +293,7 @@
     }
   }
 
+  // Edge function wrapper with session enforcement.
   async function invokeStateFunction(action, payload = {}) {
     const client = getSupabaseClient();
     if (!client) {
@@ -236,11 +322,14 @@
     return { ok: true, data };
   }
 
+  // Applies remote state and pulls the meta container out of the companies array.
   function applyRemoteState(data) {
     const companies = Array.isArray(data.companies) ? data.companies : [];
     const users = Array.isArray(data.users) ? data.users : [];
-    N.state.companies = companies;
+    const extracted = extractMetaCompany(companies);
+    N.state.companies = extracted.companies;
     N.state.users = users.map((user) => normalizeUserRecord(user));
+    N.state.meta = extracted.meta;
   }
 
   async function loadRemoteStateViaFunction() {
@@ -257,10 +346,7 @@
   }
 
   async function saveRemoteStateViaFunction() {
-    const payload = {
-      companies: N.state.companies,
-      users: N.state.users.map((user) => normalizeUserRecord(user)),
-    };
+    const payload = buildStatePayload();
     const result = await invokeStateFunction("save", payload);
     return Boolean(result.ok);
   }
@@ -281,6 +367,21 @@
     if (N.vendedor?.renderAll) {
       N.vendedor.renderAll();
     }
+    if (N.modules?.render) {
+      N.modules.render();
+    }
+    if (N.subscription?.render) {
+      N.subscription.render();
+    }
+    if (N.support?.renderAll) {
+      N.support.renderAll();
+    }
+    if (N.audit?.render) {
+      N.audit.render();
+    }
+    if (N.analytics?.renderAll) {
+      N.analytics.renderAll();
+    }
     if (N.ui?.updateStats) {
       N.ui.updateStats();
     }
@@ -290,48 +391,6 @@
     if (N.ui?.updateKillSwitch) {
       N.ui.updateKillSwitch();
     }
-  }
-
-  async function maybeImportLegacyState() {
-    const legacyKey = "nolvax_admin_state_v1";
-    let legacyRaw = "";
-    try {
-      legacyRaw = window.localStorage?.getItem(legacyKey) || "";
-    } catch (_error) {
-      legacyRaw = "";
-    }
-    if (!legacyRaw) {
-      return false;
-    }
-
-    let legacy = null;
-    try {
-      legacy = JSON.parse(legacyRaw);
-    } catch (_error) {
-      legacy = null;
-    }
-    if (!legacy || !Array.isArray(legacy.users) || !Array.isArray(legacy.companies)) {
-      return false;
-    }
-
-    const shouldImport = window.confirm(
-      "Se encontro un estado local anterior. Quieres importarlo a la nube?"
-    );
-    if (!shouldImport) {
-      return false;
-    }
-
-    applyRemoteState(legacy);
-    const saved = await saveRemoteState();
-    if (saved) {
-      try {
-        window.localStorage?.removeItem(legacyKey);
-      } catch (_error) {
-        // ignore
-      }
-      notifyStateUpdate();
-    }
-    return saved;
   }
 
   async function loadRemoteState() {
@@ -362,14 +421,10 @@
       return false;
     }
     if (!data) {
-      const payload = {
-        id: N.config.data.STATE_ROW_ID,
-        companies: [],
-        users: [],
-      };
+      const payload = buildStatePayload();
       const { error: upsertError } = await client
         .from(N.config.data.STATE_TABLE)
-        .upsert(payload, { onConflict: "id" });
+        .upsert({ id: N.config.data.STATE_ROW_ID, ...payload }, { onConflict: "id" });
       if (upsertError) {
         return false;
       }
@@ -402,14 +457,10 @@
     if (!client) {
       return false;
     }
-    const payload = {
-      id: N.config.data.STATE_ROW_ID,
-      companies: N.state.companies,
-      users: N.state.users.map((user) => normalizeUserRecord(user)),
-    };
+    const payload = buildStatePayload();
     const { error } = await client
       .from(N.config.data.STATE_TABLE)
-      .upsert(payload, { onConflict: "id" });
+      .upsert({ id: N.config.data.STATE_ROW_ID, ...payload }, { onConflict: "id" });
     return !error;
   }
 
@@ -477,9 +528,6 @@
 
   async function bootstrapState() {
     const remoteOk = await loadRemoteState();
-    if (remoteOk && !N.state.users.length && !N.state.companies.length) {
-      await maybeImportLegacyState();
-    }
     subscribeRemoteState();
     startStatePolling();
     return remoteOk ? "remote" : "error";
@@ -495,5 +543,11 @@
     saveState,
     bootstrapState,
     subscribeRemoteState,
+    getMeta() {
+      if (!N.state.meta) {
+        N.state.meta = createDefaultMetaState();
+      }
+      return N.state.meta;
+    },
   };
 })();

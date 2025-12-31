@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nolvax Admin - Analitica</title>
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body>
+    <div class="login-screen" id="login-screen">
+      <div class="login-card">
+        <div class="login-head">
+          <img class="brand-mark logo-img" src="../logo%20ico.png" alt="Nolvax" />
+          <div>
+            <p class="login-title">Nolvax Admin</p>
+          </div>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input id="login-email" name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="login-password">Contrasena</label>
+            <input id="login-password" name="password" type="password" required />
+          </div>
+          <button class="btn btn-primary login-submit" type="submit" id="login-submit">
+            Ingresar
+          </button>
+          <p class="login-error" id="login-error" role="alert"></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-shell is-hidden" id="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <img class="brand-mark logo-img" src="../logo%20ico.png" alt="Nolvax" />
+          <div>
+            <img class="brand-title-logo" src="../logo%20texto%20dark.png" alt="Nolvax" />
+            <p class="brand-sub">Control SaaS</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a class="nav-link" href="panel.html">Panel</a>
+          <a class="nav-link" href="superusuario.html">Superusuario</a>
+          <a class="nav-link" href="vendedor.html">Ventas</a>
+          <a class="nav-link" href="empresas.html">Empresas</a>
+          <a class="nav-link" href="usuarios.html">Usuarios</a>
+          <a class="nav-link" href="suscripcion.html">Suscripcion</a>
+          <a class="nav-link" href="modulos.html">Modulos</a>
+          <a class="nav-link active" href="analitica.html">Analitica</a>
+          <a class="nav-link" href="auditoria.html">Auditoria</a>
+          <a class="nav-link" href="soporte.html">Soporte</a>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="sidebar-title">Estado general</p>
+          <div class="sidebar-row">
+            <span class="chip chip-live">Operacion OK</span>
+            <span class="chip chip-warn">2 alertas</span>
+          </div>
+          <p class="sidebar-note">
+            Ultima sincronizacion: <strong>Hace 4 min</strong>
+          </p>
+          <a class="btn btn-ghost" href="panel.html">Abrir centro de control</a>
+        </div>
+
+        <div class="sidebar-card session-card">
+          <p class="sidebar-title">Sesion activa</p>
+          <p class="sidebar-note" id="session-email">-</p>
+          <p class="sidebar-note" id="session-role">-</p>
+          <button class="btn btn-ghost" type="button" id="logout-btn">Cerrar sesion</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-section is-active">
+          <header class="topbar">
+            <div class="headline">
+              <p class="kicker">Analitica</p>
+              <h1>Insight de clientes y biblioteca masiva</h1>
+              <p class="subtitle">
+                Tendencias anonimizadas, productos mas vendidos y plantillas de onboarding.
+              </p>
+            </div>
+          </header>
+
+          <section class="metrics">
+            <div class="metric-card" style="--i: 1">
+              <p class="metric-label">Ventas globales</p>
+              <p class="metric-value" id="analytics-global-sales">CLP 0</p>
+              <p class="metric-note">Suma de clientes con datos</p>
+            </div>
+            <div class="metric-card" style="--i: 2">
+              <p class="metric-label">Productos en biblioteca</p>
+              <p class="metric-value" id="analytics-global-products">0</p>
+              <p class="metric-note">SKU unicos aprobados</p>
+            </div>
+            <div class="metric-card" style="--i: 3">
+              <p class="metric-label">Top categoria</p>
+              <p class="metric-value" id="analytics-global-category">-</p>
+              <p class="metric-note">Ranking global</p>
+            </div>
+            <div class="metric-card" style="--i: 4">
+              <p class="metric-label">Clientes analizados</p>
+              <p class="metric-value" id="analytics-global-companies">0</p>
+              <p class="metric-note">Con ventas activas</p>
+            </div>
+          </section>
+
+          <div class="stack">
+            <article class="panel" style="--i: 5">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Analitica individual</p>
+                  <h2>Rendimiento por cliente</h2>
+                </div>
+                <span class="chip chip-soft">Benchmark interno</span>
+              </div>
+              <form class="form-grid compact" id="analytics-form">
+                <div class="field span-2">
+                  <label for="analytics-company">Empresa</label>
+                  <select id="analytics-company" name="company_id"></select>
+                </div>
+                <div class="field">
+                  <label for="analytics-orders">Ordenes mensuales</label>
+                  <input id="analytics-orders" name="orders" inputmode="numeric" placeholder="120" />
+                </div>
+                <div class="field">
+                  <label for="analytics-trend">Tendencia actual</label>
+                  <input id="analytics-trend" name="trend" placeholder="Crecimiento semanal 8%" />
+                </div>
+                <div class="form-actions span-2">
+                  <button class="btn btn-primary" type="button" id="analytics-save">
+                    Guardar analitica
+                  </button>
+                </div>
+                <p class="form-status span-2" id="analytics-status" role="status"></p>
+              </form>
+              <div class="support-grid">
+                <div class="support-card">
+                  <p class="support-title" id="analytics-total-sales">CLP 0</p>
+                  <p class="support-note">Ventas totales</p>
+                </div>
+                <div class="support-card">
+                  <p class="support-title" id="analytics-avg-ticket">CLP 0</p>
+                  <p class="support-note">Ticket promedio</p>
+                </div>
+                <div class="support-card">
+                  <p class="support-title" id="analytics-top-product">-</p>
+                  <p class="support-note">Producto top</p>
+                </div>
+                <div class="support-card">
+                  <p class="support-title" id="analytics-trend-note">Sin tendencia</p>
+                  <p class="support-note">Ultimos 7 dias</p>
+                </div>
+              </div>
+              <div class="table" id="analytics-product-list"></div>
+            </article>
+
+            <div class="dual-grid">
+              <article class="panel" style="--i: 6">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Analitica masiva</p>
+                    <h2>Productos mas vendidos</h2>
+                  </div>
+                  <span class="chip chip-soft">Datos anonimos</span>
+                </div>
+                <ul class="list" id="analytics-global-top"></ul>
+              </article>
+
+              <article class="panel" style="--i: 7">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Ranking</p>
+                    <h2>Categorias y regiones</h2>
+                  </div>
+                  <span class="chip chip-soft">Agregado</span>
+                </div>
+                <div class="table" id="analytics-category-list"></div>
+                <div class="table" id="analytics-region-list"></div>
+              </article>
+            </div>
+
+            <div class="dual-grid">
+              <article class="panel" style="--i: 8">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Producto nuevo</p>
+                    <h2>Alta desde cliente</h2>
+                  </div>
+                  <span class="chip chip-warn">Valida SKU unico</span>
+                </div>
+                <form class="form-grid" id="library-product-form">
+                  <div class="field span-2">
+                    <label for="library-company">Empresa</label>
+                    <select id="library-company" name="company_id"></select>
+                  </div>
+                  <div class="field">
+                    <label for="library-name">Nombre</label>
+                    <input id="library-name" name="name" required />
+                  </div>
+                  <div class="field">
+                    <label for="library-sku">SKU nacional</label>
+                    <input id="library-sku" name="sku" placeholder="SKU12345" />
+                  </div>
+                  <div class="field">
+                    <label for="library-category">Categoria</label>
+                    <input id="library-category" name="category" placeholder="Abarrotes" />
+                  </div>
+                  <div class="field">
+                    <label for="library-brand">Marca</label>
+                    <input id="library-brand" name="brand" placeholder="Proveedor" />
+                  </div>
+                  <div class="field">
+                    <label for="library-price">Precio</label>
+                    <input id="library-price" name="price" inputmode="decimal" placeholder="1990" />
+                  </div>
+                  <div class="field">
+                    <label for="library-stock">Stock</label>
+                    <input id="library-stock" name="stock" inputmode="numeric" placeholder="30" />
+                  </div>
+                  <div class="field">
+                    <label for="library-sales">Ventas mensuales</label>
+                    <input id="library-sales" name="sales" inputmode="numeric" placeholder="120" />
+                  </div>
+                  <div class="field span-2">
+                    <label for="library-image">Imagen (URL)</label>
+                    <input id="library-image" name="image" placeholder="https://..." />
+                  </div>
+                  <div class="field span-2">
+                    <label for="library-attributes">Atributos</label>
+                    <input id="library-attributes" name="attributes" placeholder="Peso, volumen, sabores" />
+                  </div>
+                  <div class="field">
+                    <label>
+                      <input type="checkbox" id="library-unique" name="unique_sku" />
+                      SKU unico nacional
+                    </label>
+                  </div>
+                  <div class="field">
+                    <label>
+                      <input type="checkbox" id="library-promo" name="promo" />
+                      Promocion temporal
+                    </label>
+                  </div>
+                  <div class="field">
+                    <label>
+                      <input type="checkbox" id="library-exclusive" name="exclusive" />
+                      Exclusivo cliente
+                    </label>
+                  </div>
+                  <div class="form-actions span-2">
+                    <button class="btn btn-primary" type="submit">Guardar producto</button>
+                  </div>
+                  <p class="form-status span-2" id="library-status" role="status"></p>
+                </form>
+              </article>
+
+              <article class="panel" style="--i: 9">
+                <div class="panel-head">
+                  <div>
+                    <p class="panel-kicker">Biblioteca masiva</p>
+                    <h2>Catalogo reutilizable</h2>
+                  </div>
+                  <span class="chip chip-soft">Actualizacion viva</span>
+                </div>
+                <label class="search">
+                  <span>Buscar</span>
+                  <input id="library-search" type="search" placeholder="SKU, nombre o categoria" />
+                </label>
+                <ul class="list" id="library-list"></ul>
+              </article>
+            </div>
+
+            <article class="panel" style="--i: 10">
+              <div class="panel-head">
+                <div>
+                  <p class="panel-kicker">Onboarding</p>
+                  <h2>Plantillas por rubro</h2>
+                </div>
+                <span class="chip chip-soft">Instalacion rapida</span>
+              </div>
+              <div class="dual-grid">
+                <form class="form-grid compact" id="template-form">
+                  <div class="field span-2">
+                    <label for="template-name">Nombre plantilla</label>
+                    <input id="template-name" name="name" placeholder="Minimarket base" />
+                  </div>
+                  <div class="field">
+                    <label for="template-sector">Rubro</label>
+                    <select id="template-sector" name="sector">
+                      <option value="Minimarket">Minimarket</option>
+                      <option value="Ferreteria">Ferreteria</option>
+                      <option value="Otros">Otros</option>
+                    </select>
+                  </div>
+                  <div class="field span-2">
+                    <label for="template-notes">Descripcion</label>
+                    <input id="template-notes" name="notes" placeholder="Lista inicial de productos." />
+                  </div>
+                  <div class="field span-2">
+                    <label for="template-skus">SKU incluidos (coma separada)</label>
+                    <input id="template-skus" name="skus" placeholder="SKU1, SKU2, SKU3" />
+                  </div>
+                  <div class="form-actions span-2">
+                    <button class="btn btn-ghost" type="submit">Guardar plantilla</button>
+                  </div>
+                  <p class="form-status span-2" id="template-status" role="status"></p>
+                </form>
+                <div>
+                  <div class="field">
+                    <label for="template-company">Aplicar a empresa</label>
+                    <select id="template-company"></select>
+                  </div>
+                  <div class="field">
+                    <label for="template-select">Plantilla</label>
+                    <select id="template-select"></select>
+                  </div>
+                  <div class="form-actions">
+                    <button class="btn btn-primary" type="button" id="template-apply">
+                      Aplicar plantilla
+                    </button>
+                  </div>
+                  <p class="form-status" id="template-apply-status" role="status"></p>
+                  <ul class="list" id="template-list"></ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/analytics.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>

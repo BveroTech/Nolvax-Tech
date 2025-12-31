@@ -344,7 +344,7 @@
       const info = document.createElement("div");
       const title = document.createElement("p");
       title.className = "list-title";
-      title.textContent = `${alert.title} · ${alert.area}`;
+      title.textContent = `${alert.title} - ${alert.area}`;
       const note = document.createElement("p");
       note.className = "list-note";
       note.textContent = alert.detail;
@@ -408,7 +408,7 @@
             ${training.mandatory ? "Obligatorio" : "Sugerido"}
           </span>
         </div>
-        <p class="list-note">Equipo: ${training.area} · Vence ${dueLabel}</p>
+        <p class="list-note">Equipo: ${training.area} - Vence ${dueLabel}</p>
         <div class="progress" style="--value: ${training.progress}%">
           <span class="progress-bar"></span>
         </div>
@@ -432,7 +432,7 @@
       const info = document.createElement("div");
       const title = document.createElement("p");
       title.className = "list-title";
-      title.textContent = `${session.type} · ${session.staff}`;
+      title.textContent = `${session.type} - ${session.staff}`;
       const note = document.createElement("p");
       note.className = "list-note";
       note.textContent = `Fecha: ${formatShortDate(session.date)}`;
